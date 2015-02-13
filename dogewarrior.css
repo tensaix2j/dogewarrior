@@ -1,0 +1,33 @@
+html {
+	margin: 0px;
+	padding: 0px;
+}
+
+body {
+	background-color: #251F0B;
+	overflow-x:hidden;
+	width: 100%;
+	user-select: none;
+	-moz-user-select: none;
+
+}
+
+#main {
+	text-align: center;
+}
+
+#cv{
+	background-color: #000000;
+}
+
+.info {
+	color:#fff;
+	font-size:10px;
+	font-family:Comic Sans MS;
+	
+}
+
+.info a {
+	color:#fff;
+}
+
