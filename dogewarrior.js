@@ -2,18 +2,6 @@
 
 
 
-//TODO:
-//trapdoor (Done)
-//sidedoor (Done)
-//switches (Done)
-//moving platform (Done)
-//treasure
-//HP
-//monster
-
-
-// Decorations
-// Secrets 
 
 
 
