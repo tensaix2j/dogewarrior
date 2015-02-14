@@ -22,9 +22,11 @@ function Dogewarrior() {
 
 	this.setting_jump_height 		= 22.0;
 	this.setting_jump_xdistance 	= 6.0;
-	this.setting_walking_speed  	= 3;
+	this.setting_walking_speed  	= 4;
 	this.setting_falling_horizontal = 5;
-	this.setting_walkcycle_interval = 4;
+	this.setting_walkcycle_interval = 3;
+
+
 	this.setting_bullet_vx 			= 18;
 	this.setting_bullet_vy 			= -10;
 	this.setting_minblocksize 		= 40;
@@ -623,6 +625,7 @@ function Dogewarrior() {
 					this.player.y +=    this.player.upwardspeed  ;
 
 				}
+
 				this.player.framex = this.player.direction == 0 ? 3 : 0 ; 
 
 			// Going up
@@ -667,12 +670,26 @@ function Dogewarrior() {
 
 		} else {
 
+			// Dropping 
 			this.player.terminalvelocity_length = 0;
-			var excess = this.player_collide_with_wall( 3 , 0.8 ) ;
-			if ( excess == 0 ) {
+
+			var excess 	= this.player_collide_with_wall( 3 , 0.8 ) ;
+			var excess2 = this.player_collide_with_wall( 3 , 3.2 ) ; 
+
+			if ( excess == 0 && excess2 == 0 ) {
+				
 				this.player.falling = 2 ;
 				this.player.upwardspeed = 0.8;
-			}
+
+			} else if ( excess2 > 0 && excess == 0 ) {
+
+				this.player.y += 2.4;
+				
+			} else if ( excess > 0.81 ) {
+				
+				this.player.y -= excess >> 0;
+				
+			}	
 		}
 
 
@@ -979,28 +996,76 @@ function Dogewarrior() {
 				
 				object = objects_arr[i];
 
+			
+
+
 				// Only draw visible object. The camera is always half screen left and top of player so
 				if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
 					 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
 
 					if ( object.name == "movingplatform") {
 
-						if ( object.properties.direction_x > 0 ) {
-							object.x += parseInt( object.properties.speed );
-							if ( object.x >= parseInt( object.properties.end_x * this.setting_minblocksize ) ) {
-								object.properties.direction_x = -1;
-							}	
-						} else if ( object.properties.direction_x  < 0 ) {
-							object.x -= parseInt( object.properties.speed );
-							if ( object.x <= parseInt( object.properties.start_x * this.setting_minblocksize ) ) {
-								object.properties.direction_x = 1;
-							}	
-						}
+						var blockismoving = 0;
+						var min_x = parseInt( object.properties.min_x ) * this.setting_minblocksize;
+						var min_y = parseInt( object.properties.min_y ) * this.setting_minblocksize;
+						var max_x = parseInt( object.properties.max_x ) * this.setting_minblocksize;
+						var max_y = parseInt( object.properties.max_y ) * this.setting_minblocksize;
+						var dir_x = parseInt( object.properties.direction_x );
+						var dir_y = parseInt( object.properties.direction_y );
 
-						
-						if ( this.sndMovingwall.paused ) {
+						if ( object.type == "controllable" ) {
+
+							if ( dir_x && object.x + dir_x > min_x && object.x + dir_x < max_x ) { 
+								object.x += dir_x;
+								blockismoving = 1;
+							}
+
+							if ( dir_y && object.y + dir_y > min_y && object.y + dir_y < max_y ) {
+								object.y += dir_y;
+								blockismoving = 1;
+							}
+
+
+						} else {
+
+							if ( dir_x ) {
+								if ( dir_x > 0 ) {
+									object.x += parseInt( object.properties.speed );
+									if ( object.x >= max_x ) {
+										object.properties.direction_x = -1;
+									}	
+								} else if ( dir_x  < 0 ) {
+
+									object.x -= parseInt( object.properties.speed );
+									if ( object.x <= min_x ) {
+										object.properties.direction_x = 1;
+									}	
+								}
+								blockismoving = 1;
+							}
+							if ( dir_y ) {
+
+								if ( dir_y > 0 ) {
+									object.y += parseInt( object.properties.speed );
+									if ( object.y >= max_y ) {
+										object.properties.direction_y = -1;
+									}	
+								} else if ( dir_y  < 0 ) {
+
+									object.y -= parseInt( object.properties.speed );
+									if ( object.y <= min_y ) {
+										object.properties.direction_y = 1;
+									}	
+								}
+								blockismoving = 1;
+							}
+
+						}
+							
+						if ( blockismoving == 1 && this.sndMovingwall.paused ) {
 							this.sndMovingwall.play();
 						}
+						
 						
 					}
 
@@ -1229,6 +1294,20 @@ function Dogewarrior() {
 										 
 									}	
 
+								} else if ( object.type == "movingplatformswitch" ) {
+
+									for ( j = 0 ; j < fg_objects_arr.length ; j++ ) {
+										
+										var object_j = fg_objects_arr[j];
+										if ( object_j.name == "movingplatform" && object_j.properties.id == object.properties.movingplatformid ) {
+											
+											//console.log( object.properties.controlproperty );
+
+											object_j.properties[ object.properties.controlproperty ] = parseInt( object.properties.state ) ? 1 : -1 ;
+
+										}
+										 
+									}	
 								}
 
 
@@ -1415,14 +1494,22 @@ function Dogewarrior() {
 		this.player.x = 500;
 		this.player.y = 3640;
 
-		//this.player.x = 69 * 40;
-		//this.player.y = 16 * 40;
-
+		
+		// World 2 Start
 		//this.player.x = 44 * 40;
 		//this.player.y = 61 * 40;
+		
+		//this.player.x = 18 * 40;
+		//this.player.y = 134 * 40;
 
-		this.player.x = 60 * 40;
-		this.player.y = 61 * 40;
+		// World 3 
+		//this.player.x = 121 * 40;
+		//this.player.y = 144 * 40;
+
+		// World 2.5
+		//this.player.x = 86 * 40;
+		//this.player.y = 145 * 40;
+
 
 		
 		this.player.framex = 0;
