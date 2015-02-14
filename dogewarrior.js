@@ -1420,6 +1420,10 @@ function Dogewarrior() {
 
 		//this.player.x = 44 * 40;
 		//this.player.y = 61 * 40;
+
+		this.player.x = 60 * 40;
+		this.player.y = 61 * 40;
+
 		
 		this.player.framex = 0;
 		this.player.framey = 0;
