@@ -10,7 +10,7 @@ function Dogewarrior() {
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
-	this.total_resource  		= 7;
+	this.total_resource  		= 8;
 
 	this.cvwidth 		 		= 1200;
 	this.cvheight 		 		= 600;
@@ -28,11 +28,11 @@ function Dogewarrior() {
 
 
 	this.setting_bullet_vx 			= 18;
-	this.setting_bullet_vy 			= -10;
+	this.setting_bullet_vy 			= -4;
 	this.setting_minblocksize 		= 40;
 	this.setting_gravity 			= 1.1;
 	this.setting_maxparticle 		= 40;
-	this.setting_maxbullet			= 20;
+	this.setting_maxbullet			= 30;
 
 
 	this.sprite_mainchar 			= {};
@@ -41,10 +41,12 @@ function Dogewarrior() {
 	this.backgroundlayer_id 		= 0;
 	this.middlegroundlayer_id 		= 1;
 	this.foregroundlayer_id 		= 2;
-		
 	this.backgroundobjectlayer_id	= 3;
 	this.foregroundobjectlayer_id 	= 4;
 	this.pickableobjectlayer_id 	= 5;
+	this.monsterobjectlayer_id 		= 6;
+	this.triggerlayer_id 			= 7;
+
 
 
 
@@ -136,7 +138,10 @@ function Dogewarrior() {
 		this.sndClosedoor  = new Audio("sounds/closedoor.wav");
 		this.sndMovingwall = new Audio("sounds/movingwall.wav");
 		this.sndPickup 	   = new Audio("sounds/pickup.wav");
+		this.sndCatpurr    = new Audio("sounds/catpurr.wav");
 
+		this.sndSplash     = new Audio("sounds/splash.wav");
+		this.sndSplash2    = new Audio("sounds/splash2.wav");
 
 
 
@@ -146,7 +151,10 @@ function Dogewarrior() {
 		this.loadJSON("maps/level01.json",function( map ) {
 			dw.map = map;
 			dw.on_load_completed();
+			dw.auto_calculate_monster_boundary();
 		}, false); 
+
+		
 
 		this.sprite_bgtiles = new Image();
 		this.sprite_bgtiles.src = "images/bgtiles.png";
@@ -159,6 +167,13 @@ function Dogewarrior() {
 		this.sprite_objecttiles.addEventListener('load', function() {
 			dw.on_load_completed();
 		},false);
+
+		this.sprite_monster = new Image();
+		this.sprite_monster.src = "images/monster.png";
+		this.sprite_objecttiles.addEventListener('load', function() {
+			dw.on_load_completed();
+		},false);
+		
 
 		
 
@@ -321,7 +336,32 @@ function Dogewarrior() {
 									this.setting_minblocksize, 
 									this.setting_minblocksize );	
 
+					
+					} else if ( object.name == "powerup" ) {
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											3 * this.setting_minblocksize ,
+											5 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
+
+					} else if ( object.name == "coinup" ) {
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											4 * this.setting_minblocksize ,
+											5 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
 					} 
+
 
 				}	
 			}
@@ -420,21 +460,53 @@ function Dogewarrior() {
 							   	40,
 							   	40 );
 
+
+
+		// Draw monster
+		for ( var i = 0 ; i < this.monsters.length ; i++ ) {
+			
+			var object = this.monsters[i];
+
+			// Only draw visible object. The camera is always half screen left and top of player so
+			if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
+				 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+
+				
+				this.ctxt.drawImage( this.sprite_monster, 
+									( object.framex ) * ( 2 * this.setting_minblocksize ) ,
+									( object.framey ) * ( 2 * this.setting_minblocksize ) ,
+									2 * this.setting_minblocksize,
+									2 * this.setting_minblocksize,
+						  object.x - this.camera.x , 
+						  object.y + 3 - this.camera.y, 
+							2 * this.setting_minblocksize, 
+							2 * this.setting_minblocksize );	
+
+				 
+			}	
+		}
+
+
+
 		// Draw Bullets 
 		for ( var i = 0 ; i < this.setting_maxbullet ; i++ ) {
 				
 			var bullet = this.player.bullets[i];
 
 			if ( bullet.active == true ) {
-					
+				
+				var basesize = 14;
+				var upgraded_size = basesize + ( bullet.power - 1 ) * 3 ;
+
 				this.ctxt.drawImage( this.sprite_dogecoin, 
 										0,
 										0,
 										64,
 										64,
-							bullet.x - this.camera.x - 7, 
-							bullet.y - this.camera.y - 7, 
-								14, 14 );
+							bullet.x - this.camera.x - upgraded_size/2, 
+							bullet.y - this.camera.y - upgraded_size/2, 
+								upgraded_size, 
+								upgraded_size );
 
 			} 
 		}
@@ -446,13 +518,14 @@ function Dogewarrior() {
 			if ( particle.active > 0 ) {
 
 				this.ctxt.drawImage( this.sprite_particle, 
-										particle.framex * 40,
-										particle.framey * 40,
-										40,
-										40,
-							particle.x - this.camera.x - 16, 
-							particle.y - this.camera.y - 16, 
-								40, 40 );	
+										particle.framex * ( particle.size_x * this.setting_minblocksize ),
+										particle.framey * this.setting_minblocksize,
+										particle.size_x * this.setting_minblocksize,
+										particle.size_y * this.setting_minblocksize,
+							particle.x - this.camera.x - ( particle.size_x * this.setting_minblocksize )/2, 
+							particle.y - this.camera.y - ( particle.size_y * this.setting_minblocksize )/2, 
+								particle.size_x * this.setting_minblocksize,
+								particle.size_y * this.setting_minblocksize);	
 
 
 			}
@@ -532,12 +605,6 @@ function Dogewarrior() {
 
 			if ( this.player.firing == 0  && this.player.in_pain == 0) {
 				
-				if ( Math.random() > 0.9 ) {
-					this.sndWow.play();
-				} else {
-					this.sndBark.play();
-				}
-
 				this.player.firing = 1;
 			}
 		
@@ -586,322 +653,14 @@ function Dogewarrior() {
 		var dw = this;
 			
 		
-		// Falling
-		if ( this.player.falling > 0 ) {
+		this.player_falling();
+		this.player_crouch();
+		this.player_inpain();
+		this.player_jump();
+		this.player_walkleft();
+		this.player_walkright();
+		this.player_idle();
 
-			
-			
-
-			// Falling down
-			if ( this.player.upwardspeed > 0.0 ) {
-
-				var excess = this.player_collide_with_wall(3 , this.player.upwardspeed ) ;
-				if ( excess > 0 ) {
-
-					this.player.y += this.player.upwardspeed - excess ;
-					this.player.upwardspeed = 0;
-					this.player.falling = 0;
-
-					this.sndPlayerWalk.play();
-
-					if ( this.player.terminalvelocity_length > 5 ) {
-						this.player.in_pain = 50;
-						this.sndSadDog.play();
-						this.sndBreakBone.play();
-
-					}
-				
-				} else {
-
-					this.player.upwardspeed += this.setting_gravity;
-
-					// Terminal velocity
-					if ( this.player.upwardspeed > this.setting_minblocksize - 1.0 ) {
-						this.player.upwardspeed = this.setting_minblocksize - 1.0 ;
-
-						this.player.terminalvelocity_length += 1;
-
-					}
-					this.player.y +=    this.player.upwardspeed  ;
-
-				}
-
-				this.player.framex = this.player.direction == 0 ? 3 : 0 ; 
-
-			// Going up
-			} else if ( this.player.upwardspeed < 0.0 ) {
-				
-				var excess = this.player_collide_with_wall( 1 , this.player.upwardspeed );
-				if ( excess > 0 ) {
-						
-					this.player.upwardspeed = this.setting_gravity;
-					this.player.y +=    this.player.upwardspeed - excess ;
-
-				} else {
-					this.player.upwardspeed += this.setting_gravity;
-					this.player.y +=    this.player.upwardspeed  ;
-
-					if ( this.player.tick > 4  ) {
-							
-						if ( this.player.direction == 0 && this.player.framex < 3 ) {		
-							this.player.framex += 1;
-						
-						} else if ( this.player.direction == 1 && this.player.framex > 0 ) {
-							this.player.framex -= 1;
-
-						}	
-
-						this.player.tick = 0;
-					}
- 				}
-
- 				
-			}
-			
-			this.player.y_head = 16 ;	
-			this.player.x_head = 38 ;
-
-			this.player.framey = 4 + this.player.direction;
-			
-				
-			if ( this.player.direction == 1 ) {
-				this.player.x_head = 46;
-			}
-
-		} else {
-
-			// Dropping 
-			this.player.terminalvelocity_length = 0;
-
-			var excess 	= this.player_collide_with_wall( 3 , 0.8 ) ;
-			var excess2 = this.player_collide_with_wall( 3 , 3.2 ) ; 
-
-			if ( excess == 0 && excess2 == 0 ) {
-				
-				this.player.falling = 2 ;
-				this.player.upwardspeed = 0.8;
-
-			} else if ( excess2 > 0 && excess == 0 ) {
-
-				this.player.y += 2.4;
-				
-			} else if ( excess > 0.81 ) {
-				
-				this.player.y -= excess >> 0;
-				
-			}	
-		}
-
-
-
-
-
-
-
-		// Initiate Crouch
-		if ( this.player.control_direction[3] == 1 ) {
-			
-			if ( this.player.falling == 0 ) {			
-				this.player.crouching = true;
-				this.player.framex = this.player.direction + 4;
-				this.player.framey = 2;	
-
-				this.player.y_head = 45 ;
-				this.player.x_head = 38 ;
-					
-				if ( this.player.direction == 1 ) {
-					this.player.x_head = 41;
-				}
-			}
-
-		} else {
-			this.player.crouching = false ;
-		}
-		
-
-
-		// In Pain
-		if ( this.player.in_pain > 0 ) {
-
-
-			this.player.framex = this.player.direction + 4;
-			this.player.framey = 2;	
-			this.player.y_head = 45 ;
-			this.player.x_head = 38 ;
-
-			if ( this.player.direction == 1 ) {
-				this.player.x_head = 41;
-			}
-			this.player.in_pain -= 1;
-		}
-
-
-
-		// Initiate Jump 
-		if ( this.player.control_direction[1] == 1 ) {
-
-			if ( this.player.falling == 0 && 
-				 this.player.crouching == false && 
-				 this.player.in_pain == 0 ) {
-				
-				this.player.upwardspeed = -1.0 * this.setting_jump_height ;
-				this.player.falling 	= 1;
-
-				if ( this.player.direction == 0 ) {
-					this.player.framex = 0;
-				} else {
-					this.player.framex = 3;
-				}
-
-			}	
-		}
-		
-
-
-
-
-
-		// Walking left
-		this.player.walking   = false;
-		if ( this.player.control_direction[0] == 1 ) {
-
-			if ( this.player.crouching == false && this.player.in_pain == 0 ) {
-
-				var excess = this.player_collide_with_wall( 0 , this.player.falling > 0 ? - this.setting_falling_horizontal : - this.setting_walking_speed ) ;
-
-				if ( excess > 0 ) {
-					//this.player.x -= excess ;
-				
-				} else {
-
-					if ( this.player.falling > 0 ) {
-
-						if ( this.player.falling == 1 ) {
-							this.player.x -= this.setting_jump_xdistance;
-						} else {
-							this.player.x -=  this.setting_falling_horizontal;
-						}
-
-					} else {
-						this.player.x -=  this.setting_walking_speed;;
-						this.player.framey = 0;
-						if ( this.player.tick >  this.setting_walkcycle_interval ) {
-							this.player.framex  = (this.player.framex + 1 ) % 8 ;
-							this.player.tick = 0;
-						}
-					}
-					this.player.walking   = true;
-				} 	
-
-				this.player.direction = 0;
-				if ( this.player.falling == 0 && ( this.player.framex == 0 || this.player.framex == 4 ) ) {
-					this.sndPlayerWalk.play();
-				}
-
-				var head_offset_y = [  3,  0, -2,  0,  4, 0 , -2,  0 ];
-				this.player.y_head = 15 + head_offset_y[ this.player.framex ];
-				
-				var head_offset_x = [  2, -1,  0, -1,  0, 0 ,  0 , 0  ];
-				this.player.x_head = 36 + head_offset_x[ this.player.framex ];
-
-			}
-		}
-
-
-
-
-
-
-
-			
-		// Walking right
-		if ( this.player.control_direction[2] == 1 ) {
-			
-			if ( this.player.crouching == false && this.player.in_pain == 0 ) {
-
-				var excess = this.player_collide_with_wall( 2 , this.player.falling > 0 ? this.setting_falling_horizontal : this.setting_walking_speed ) ;
-
-				if ( excess > 0 ) {
-					//this.player.x -= excess ;
-				
-				} else {
-
-					if ( this.player.falling > 0 ) {
-						
-						if ( this.player.falling == 1 ) {
-							this.player.x += this.setting_jump_xdistance;
-						} else {
-							this.player.x += this.setting_falling_horizontal;
-						}
-
-					} else {
-						this.player.x += this.setting_walking_speed;
-						this.player.framey = 1;
-
-						if ( this.player.tick > this.setting_walkcycle_interval ) {
-							this.player.framex  = (this.player.framex + 7 ) % 8 ;
-							this.player.tick = 0;
-						}
-					}
-					this.player.walking   = true;
-				}	
-				this.player.direction = 1;
-				
-				if ( this.player.falling == 0 && ( this.player.framex == 7 || this.player.framex == 3 ) ) {
-					this.sndPlayerWalk.play();
-				}
-
-				var head_offset_y = [  0, -2, 0, 4, 0, -2, 0 , 3 ];
-				this.player.y_head = 15 + head_offset_y[ this.player.framex ];
-				
-				var head_offset_x = [  0, 0, 0, 0, 1, 0, 1, -2  ];
-				this.player.x_head = 44 + head_offset_x[ this.player.framex ];
-
-
-			}
-		} 
-
-
-
-
-
-		// Idle
-		if ( this.player.falling == 0 && 
-			 this.player.walking == false && 
-			 this.player.crouching == false && 
-			 this.player.in_pain == 0 )  {
-
-			this.player.framex = this.player.framex % 4;
-			this.player.framey = 2  + this.player.direction ;
-				
-			if ( this.player.tick > 12 ) {
-
-				if ( this.player.direction == 0 ) {
-					this.player.framex  = (this.player.framex + 1 ) % 4 ;
-				} else {
-					this.player.framex  = ( this.player.framex + 3 ) % 4;
-				}
-				this.player.tick = 0;
-
-			}
-
-			if ( this.player.direction == 0 ) {
-				
-				var head_offset_y = [ 2, 1, -1 , 1 ];
-				var head_offset_x = [ -1, 0,  1,  0 ];
-				this.player.y_head = 14 + head_offset_y[ this.player.framex ];
-				this.player.x_head = 39 + head_offset_x[ this.player.framex ];
-			
-			} else {
-				
-				var head_offset_y = [ 1,  -1,  1 , 2 ];
-				var head_offset_x = [ 0,  -1,  0,  1 ];
-				this.player.y_head = 14 + head_offset_y[ this.player.framex ];
-				this.player.x_head = 39 + head_offset_x[ this.player.framex ];
-			}
-
-				
-		}
 
 
 		this.player.framey_head = this.player.direction;
@@ -910,31 +669,39 @@ function Dogewarrior() {
 			this.player.framex_head = 3;
 		}
 
+		this.player_fire();
+		this.spawn_monsters();
+		this.animate_monsters();
+		this.animate_bullets();
+		this.animate_particles();
+		this.animate_transition();
+		this.animate_foregroundobjects();
+		this.player_pickup_objects();
+		this.player_collide_with_trigger();
 
-		// Firing
-		if ( this.player.firing > 0 && 
-			 this.player.in_pain == 0) {
-			
-			if ( this.player.direction == 0 ) {
-				this.player.framex_head = this.player.firing;
-			} else {
-				this.player.framex_head = 3 - this.player.firing;
-			}
-			
-			if ( this.player.tick2 > 4 ) { 
-				this.player.firing += 1;
-				if ( this.player.firing >= 4 ) {
-					this.firebullet();
-					this.player.firing = 0;
-				}
-
-				this.player.tick2 = 0;
-			}
-		}
-
-
+		this.camera.x = this.player.x - this.cvwidth / 2  + this.player.width / 2 ;
+		
+		var camera_target_y = this.player.y - this.cvheight / 2 + this.player.height / 2 ;
+		this.camera.y +=  (( camera_target_y - this.camera.y ) / 10 >> 0 ); 
 		
 
+		this.player.tick += 1;
+		this.player.tick2 += 1;
+
+
+		this.on_draw();
+
+		setTimeout( function() {
+			dw.on_timer();
+		}, this.timerinterval );
+	}
+
+
+
+
+
+	//-------
+	this.animate_bullets = function() {
 
 
 		// Animate Bullets 
@@ -942,7 +709,7 @@ function Dogewarrior() {
 				
 			var bullet = this.player.bullets[i];
 
-			if ( bullet.active == true ) {
+			if ( bullet.active  ) {
 				
 				if ( bullet.vy < 20 ) {
 					bullet.vy += 1 ;
@@ -952,40 +719,38 @@ function Dogewarrior() {
 				}
 				bullet.y += bullet.vy;
 				bullet.x += bullet.vx;
-
+				
 				if ( this.bullet_collide_with_wall( bullet ) ) {
 					bullet.active = 0;
-					this.fireparticle( bullet.x, bullet.y , 0);
-				}	
+					this.fireparticle( bullet.x, bullet.y , 0 , 1 , 1 , 11 , 1);
+
+				}
+
+				if ( bullet.active  ) {
+					
+					var monster_index = this.bullet_collide_with_monster( bullet );
+					if ( monster_index > -1 ) {
+
+						var monster = this.monsters[ monster_index ];
+
+						bullet.active = 0;
+						this.fireparticle( bullet.x, bullet.y , 0 , 1 , 1 , 11 , 1);
+						monster.hp -= bullet.power ;
+						if ( monster.hp <= 0 ) {
+							this.monster_to_die(monster , monster_index);
+						}
+
+					} 	
+				}
 			} 
 		}
+	}
 
-		// Animate Particles
-		for ( var i = 0; i < this.setting_maxparticle ; i++ ) {
 
-			var particle = this.particles[i];
-			if ( particle.active > 0 ) {
+	//---
+	this.animate_foregroundobjects = function() {
 
-				particle.framex += 1;
-				particle.active -= 1;
-			}
-		}
 
-		// Animate transition
-		if ( this.teleporting > 0 ) {
-			
-			this.teleporting -= 1;
-			if ( this.teleporting == 10 && this.teleport_target ) {
-
-				this.player.x = this.teleport_target.x ;
-				this.player.y = this.teleport_target.y ;
-				this.camera.x = this.player.x - this.cvwidth / 2;
-				this.camera.y = this.player.y - this.cvheight / 2;
-				this.teleport_target = null;
-			}
-		}
-
-		
 
 		// Animate foreground object
 		if ( this.map.layers && this.map.layers[ this.foregroundobjectlayer_id ]["objects"] ) {
@@ -1073,69 +838,246 @@ function Dogewarrior() {
 				}	
 			}
 		}	
+	}
 
 
-		// Player pickup
-		if ( this.map.layers && this.map.layers[ this.pickableobjectlayer_id ]["objects"] ) {
+	//----------
+	this.animate_monsters = function() {
 
-			var objects_arr = this.map.layers[ this.pickableobjectlayer_id ]["objects"];
-			for ( var i = objects_arr.length - 1 ; i >= 0 ; i-- ) {
+		for ( var i = this.monsters.length - 1 ; i >= 0 ; i-- ) {
+			
+			var object = this.monsters[i];
+
+			if ( object.x >= this.camera.x - this.cvwidth * 2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth * 2   && 
+				 object.y >= this.camera.y - this.cvheight * 2 && object.y <= this.camera.y + this.cvheight + this.cvheight * 2 ) {
+
 				
-				object = objects_arr[i];
-				var diffx = ( object.x + this.setting_minblocksize / 2 ) - ( this.player.x + this.player.width / 2 );
-				var diffy = ( object.y + this.setting_minblocksize / 2 ) - ( this.player.y + this.player.height / 2 ) ;
+				object.tick += 1;
 
-				if ( diffx * diffx + diffy * diffy < this.setting_minblocksize * this.setting_minblocksize ) {
+				if ( object.name == "monster_grounded") {
 
-					this.player.inventory.push( object );
-					objects_arr.splice( i , 1 );
-
-					this.sndPickup.play();
-					this.fireparticle( object.x + 10 , object.y + 10 , 1 );
+					// position
+					if ( object.direction == 0 ) {
+						
+						object.x -= 1;
+						if ( object.x < object.min_x * this.setting_minblocksize ) {
+							object.direction = 2;
+						}
 					
+					} else if ( object.direction == 2 ) {
+						object.x += 1;
+						if ( object.x > object.max_x  * this.setting_minblocksize ) {
+							object.direction = 0;
+							
+						}
+					}
+
+					// anim
+					if ( object.tick > 4 ) {
+						object.tick = 0;
+						if ( object.direction == 0 ) {
+							object.framey = 0;
+							object.framex  = ( object.framex + 1 ) % 8;
+						} else {
+							object.framey = 1;
+							object.framex = ( object.framex + 7 ) % 8;					
+						}
+					}
+
+
+				} else if ( object.name == "monster_flying" ) {
+
+					// position
+
+
+					if ( object.radius < object.tr ) {
+						object.radius += 1;
+					} else if ( object.radius > object.tr ) {
+						object.radius -= 1;
+					} else {
+						object.tr = this.rand(100);
+					}
+
+
+
+					object.cx += (this.player.x - object.cx ) / 60 >> 0;
+					object.cy += (this.player.y - object.cy ) / 60 >> 0;
+
+
+					object.x = object.radius * Math.cos( object.theta * 3.14159 / 180 ) + object.cx ;
+					object.y = object.radius * Math.sin( object.theta * 3.14159 / 180 ) + object.cy ;
+
+					
+
+					object.theta = ( object.theta + 1 ) % 360;
+
+
+					if ( this.player.x > object.x ) {
+						object.framey = 3;
+					} else {
+						object.framey = 2;
+					}
+
+					// anim
+					if ( object.tick > 4 ) {
+						
+						object.framex  = ( object.framex + 1 ) % 3;
+						object.tick = 0;
+					}
+				} 
+				
+				if ( this.monster_collide_with_player( object ) ) {
+
+					this.monster_to_die( object, i );
+				} 
+
+				
+
+			}	
+		}
+	}
+
+
+
+	//-----
+	this.animate_particles = function() {
+
+		// Animate Particles
+		for ( var i = 0; i < this.setting_maxparticle ; i++ ) {
+
+			var particle = this.particles[i];
+			
+			if ( particle.tick >= particle.interval ) {
+				if ( particle.active > 0 ) {
+
+					particle.framex += particle.size_x;
+					particle.active -= 1;
 				}
+				particle.tick = 0;
 			}
-		}	
-
-
-		this.camera.x = this.player.x - this.cvwidth / 2  + this.player.width / 2 ;
-		
-		var camera_target_y = this.player.y - this.cvheight / 2 + this.player.height / 2 ;
-		this.camera.y +=  (( camera_target_y - this.camera.y ) / 10 >> 0 ); 
-		
-
-		this.player.tick += 1;
-		this.player.tick2 += 1;
-
-
-		this.on_draw();
-
-		setTimeout( function() {
-			dw.on_timer();
-		}, this.timerinterval );
+			particle.tick += 1;
+			
+		}
 	}
 
 
-	//---------------------------------
-	this.debug = function() {
+	//---------
+	this.animate_transition = function() {
 
-		
+		// Animate transition
+		if ( this.teleporting > 0 ) {
+			
+			this.teleporting -= 1;
+			if ( this.teleporting == 10 && this.teleport_target ) {
 
-		//this.ctxt.strokeStyle = '#ff0000';
-		//this.ctxt.font = "20px Comic Sans MS";
-		//this.ctxt.fillText( this.player.terminalvelocity_length , 200 , 200 );
-
-		this.ctxt.beginPath();
-		this.ctxt.rect( 
-						this.player.x + this.player.width / 2 - this.camera.x , 
-						this.player.y + this.player.height / 2 - this.camera.y , 
-						2, 2);
-		this.ctxt.fillStyle = 'blue';
-		this.ctxt.fill();
-		this.ctxt.closePath();
-		
+				this.player.x = this.teleport_target.x ;
+				this.player.y = this.teleport_target.y ;
+				this.camera.x = this.player.x - this.cvwidth / 2;
+				this.camera.y = this.player.y - this.cvheight / 2;
+				this.teleport_target = null;
+			}
+		}
 
 	}
+
+	
+	//-------
+	this.auto_calculate_monster_boundary = function( ) {
+
+
+		// Monster spawner
+		if ( this.map.layers && this.map.layers[ this.monsterobjectlayer_id ]["objects"] ) {
+
+			var objects_arr = this.map.layers[ this.monsterobjectlayer_id ]["objects"];
+
+			for ( var i = objects_arr.length - 1  ; i >= 0 ; i-- ) {
+				
+				var object = objects_arr[i];
+
+				if ( object.name == "monster_grounded" ) {
+				
+					var spawner_tile_x = object.x / this.setting_minblocksize >> 0;	
+					var spawner_tile_y = object.y / this.setting_minblocksize >> 0;
+					
+					var min_x  	 = spawner_tile_x;
+					var max_x  	 = spawner_tile_x;
+
+					// Scan left for min_x 
+					if ( object.properties.min_x == "auto" ) {
+
+						var scan_col = spawner_tile_x;
+						while ( scan_col > 0 ) {
+							
+							var data0 	= this.map.layers[ this.foregroundlayer_id ].data[ (spawner_tile_y + 0) * this.map.layers[ this.foregroundlayer_id ].width + scan_col ];
+							var data1 	= this.map.layers[ this.foregroundlayer_id ].data[ (spawner_tile_y + 1) * this.map.layers[ this.foregroundlayer_id ].width + scan_col ];
+							var data2 	= this.map.layers[ this.foregroundlayer_id ].data[ (spawner_tile_y + 2) * this.map.layers[ this.foregroundlayer_id ].width + scan_col ];
+							
+							if ( data0 == 0  && data1 == 0 && data2 > 0 ) {
+								min_x = scan_col;
+
+
+							} else {
+								break	
+							}	
+							scan_col -= 1;
+						}
+						object.properties.min_x = min_x;
+					} else {
+						object.properties.min_x = parseInt(  object.properties.min_x );
+					}
+					
+
+					if ( object.properties.max_x == "auto" ) {
+
+						scan_col = spawner_tile_x + 1;
+						
+						while ( scan_col < 	this.map.layers[ this.foregroundlayer_id ].width ) {
+
+							var data0 	= this.map.layers[ this.foregroundlayer_id ].data[ (spawner_tile_y + 0) * this.map.layers[ this.foregroundlayer_id ].width + scan_col ];
+							var data1 	= this.map.layers[ this.foregroundlayer_id ].data[ (spawner_tile_y + 1) * this.map.layers[ this.foregroundlayer_id ].width + scan_col ];
+							var data2 	= this.map.layers[ this.foregroundlayer_id ].data[ (spawner_tile_y + 2) * this.map.layers[ this.foregroundlayer_id ].width + scan_col ];
+							
+							if ( data0 == 0  && data1 == 0 && data2 > 0 ) {
+								max_x = scan_col;
+							} else {
+								break	
+							}
+							scan_col += 1;
+						}	
+						object.properties.max_x = max_x - 1;
+					
+					} else {
+						object.properties.max_x = parseInt(  object.properties.max_x );
+					}
+				}
+
+				
+			}
+		}
+			
+	}
+
+
+
+
+	//--------
+	this.bullet_collide_with_monster = function( bullet ) {
+
+		for ( var m = this.monsters.length - 1 ; m >= 0 ; m-- ) {
+
+			var monster = this.monsters[m];
+
+			var diffx = monster.x + 40 - bullet.x;
+			var diffy = monster.y + 40 - bullet.y;
+
+			if ( diffx * diffx + diffy * diffy < 40 * 40 ) {
+				return m;
+			} 
+
+		}
+		return -1;
+	}
+
 
 	//---------
 	this.bullet_collide_with_wall = function( bullet ) {
@@ -1185,6 +1127,44 @@ function Dogewarrior() {
 			return -1;
 		}
 		return 0;	
+	}
+
+
+
+	//---------------------------------
+	this.debug = function() {
+
+		
+
+		//this.ctxt.strokeStyle = '#ff0000';
+		//this.ctxt.font = "20px Comic Sans MS";
+		//this.ctxt.fillText( this.player.terminalvelocity_length , 200 , 200 );
+		/*
+		if ( this.monsters.length > 0 ) {
+			this.ctxt.beginPath();
+			this.ctxt.rect( 
+							this.monsters[0].x - this.camera.x , 
+							this.monsters[0].y - this.camera.y , 
+							2, 2);
+			this.ctxt.fillStyle = 'green';
+			this.ctxt.fill();
+			this.ctxt.closePath();
+		}	
+
+		for ( i = 0 ; i < this.setting_maxbullet ; i++ ) {
+
+			if ( this.player.bullets[i].active ) {
+				this.ctxt.beginPath();
+				this.ctxt.rect( 
+							this.player.bullets[i].x - this.camera.x , 
+							this.player.bullets[i].y - this.camera.y , 
+							4, 4);
+				this.ctxt.fillStyle = 'red';
+				this.ctxt.fill();
+				this.ctxt.closePath();
+			}
+		}	
+		// */
 	}
 
 
@@ -1326,30 +1306,50 @@ function Dogewarrior() {
 	//----------------------------------
 	this.firebullet = function() {
 
+		var firepower;
+		if ( Math.random() > 0.9 ) {
+			this.sndWow.play();
+			firepower = 5;
+			
+		} else {
+			this.sndBark.play();
+			firepower = this.player.coinpower;
+
+		}
+
 		var bullet 	= this.player.bullets[ this.player.bulletindex];
+		var firepoint_x, firepoint_y;
 
 		if ( this.player.direction == 0 ) {
-			bullet.x 	= this.player.x + this.player.width / 2 - 2;
+			firepoint_x 	= this.player.x + this.player.width / 2 - 2;
 		} else {	
-			bullet.x 	= this.player.x + this.player.width / 2 + 2;
+			firepoint_x 	= this.player.x + this.player.width / 2 + 2;
 		}
 		
 		if ( this.player.crouching ) {
-			bullet.y 	= this.player.y + 70;
+			firepoint_y 	= this.player.y + 70;
 		} else {
-			bullet.y 	= this.player.y + 40;
+			firepoint_y 	= this.player.y + 40;
 		}
 
 
-		bullet.vy 	= this.setting_bullet_vy;
-		bullet.vx  	= this.player.direction * this.setting_bullet_vx * 2  - this.setting_bullet_vx ;			
-		bullet.active = true;
+		// Multi shot
+		for  ( var i = 0 ; i < this.player.coincount ; i++ ) {
 
-		this.player.bulletindex = (this.player.bulletindex  + 1) % this.setting_maxbullet ;
+			bullet 			= this.player.bullets[ this.player.bulletindex];
+			bullet.x  		= firepoint_x ;
+			bullet.y  		= firepoint_y ;
+			bullet.power 	= firepower;
+			bullet.vy 		= this.setting_bullet_vy - 5 * i;
+			bullet.vx  		= this.player.direction * this.setting_bullet_vx * 2  - this.setting_bullet_vx ;
+			bullet.active 	= true;
+			this.player.bulletindex = (this.player.bulletindex  + 1) % this.setting_maxbullet ;
+		}
+
 	}	
 
 	//----------
-	this.fireparticle = function( x , y , type ) {
+	this.fireparticle = function( x , y , type , size_x , size_y , active , interval ) {
 
 		var particle = this.particles[ this.particleindex ];
 					
@@ -1357,9 +1357,73 @@ function Dogewarrior() {
 		particle.y = y;
 		particle.framex = 0;
 		particle.framey = type;
-		particle.active = 11;
-		
+		particle.active = active;
+		particle.size_x = size_x;
+		particle.size_y = size_y;
+		particle.tick = 0;
+		particle.interval = interval;
+
 		this.particleindex = ( this.particleindex + 1 )  % this.setting_maxparticle;
+	}
+
+
+	//---------------------------
+	this.monster_to_die = function( monster , index ) {
+
+		this.fireparticle( monster.x + 40  , monster.y + 40 , 4 , 2 , 2 , 7 , 4 );
+		
+		if ( this.sndSplash.paused ) {
+			this.sndSplash.play();
+		} else {
+			this.sndSplash2.play();
+		}
+		// Clear the monster
+		this.monsters.splice( index , 1 );
+	} 
+
+
+	//------
+	this.monster_collide_with_player = function( monster ) {
+
+		var diffx = this.player.x + 20 - monster.x ;
+		var diffy = this.player.y + ( this.player.crouching ? 30 : 0) - monster.y  ;
+
+		if ( diffx * diffx + diffy * diffy < 55 * 55 ) {
+			return 1;
+		}
+		return 0;
+
+	}
+
+
+
+	//------------
+	this.player_collide_with_trigger = function( ) {
+
+		if ( this.map.layers && this.map.layers[ this.triggerlayer_id ]["objects"] ) {
+
+			var objects_arr = this.map.layers[ this.triggerlayer_id ]["objects"];
+
+			for ( var i = objects_arr.length - 1 ; i >= 0 ; i-- ) {
+
+				object = objects_arr[i];
+				if ( this.player.x >= object.x && this.player.x <= object.x + object.width && 
+					 this.player.y >= object.y && this.player.y <= object.y + object.height ) {
+
+					var spawner_arr 	= this.map.layers[ this.monsterobjectlayer_id  ]["objects"];
+					for ( var j = 0 ; j < spawner_arr.length ; j++ ) {
+
+						if ( parseInt( spawner_arr[j].properties.triggerid ) == parseInt( object.properties.id ) ) {
+							spawner_arr[j].properties.triggerid = 0;
+						}
+					}
+
+					// Done with trigger. delete it.
+					objects_arr.splice( i , 1 );
+				}	
+			}	
+
+		}
 	}
 
 
@@ -1488,6 +1552,411 @@ function Dogewarrior() {
 	}
 
 
+	//---------
+	this.player_crouch = function() {
+
+		// Initiate Crouch
+		if ( this.player.control_direction[3] == 1 ) {
+			
+			if ( this.player.falling == 0 ) {			
+				this.player.crouching = true;
+				this.player.framex = this.player.direction + 4;
+				this.player.framey = 2;	
+
+				this.player.y_head = 45 ;
+				this.player.x_head = 38 ;
+					
+				if ( this.player.direction == 1 ) {
+					this.player.x_head = 41;
+				}
+			}
+
+		} else {
+			this.player.crouching = false ;
+		}
+	}
+
+
+	//-----------------------------------
+	this.player_falling = function() {
+		// Falling
+		if ( this.player.falling > 0 ) {
+			
+			// Falling down
+			if ( this.player.upwardspeed > 0.0 ) {
+
+				var excess = this.player_collide_with_wall(3 , this.player.upwardspeed ) ;
+				if ( excess > 0 ) {
+
+					this.player.y += this.player.upwardspeed - excess ;
+					this.player.upwardspeed = 0;
+					this.player.falling = 0;
+
+					this.sndPlayerWalk.play();
+
+					if ( this.player.terminalvelocity_length > 5 ) {
+						this.player.in_pain = 50;
+						this.sndSadDog.play();
+						this.sndBreakBone.play();
+
+					}
+				
+				} else {
+
+					this.player.upwardspeed += this.setting_gravity;
+
+					// Terminal velocity
+					if ( this.player.upwardspeed > this.setting_minblocksize - 1.0 ) {
+						this.player.upwardspeed = this.setting_minblocksize - 1.0 ;
+
+						this.player.terminalvelocity_length += 1;
+
+					}
+					this.player.y +=    this.player.upwardspeed  ;
+
+				}
+
+				this.player.framex = this.player.direction == 0 ? 3 : 0 ; 
+
+			// Going up
+			} else if ( this.player.upwardspeed < 0.0 ) {
+				
+				var excess = this.player_collide_with_wall( 1 , this.player.upwardspeed );
+				if ( excess > 0 ) {
+						
+					this.player.upwardspeed = this.setting_gravity;
+					this.player.y +=    this.player.upwardspeed - excess ;
+
+				} else {
+					this.player.upwardspeed += this.setting_gravity;
+					this.player.y +=    this.player.upwardspeed  ;
+
+					if ( this.player.tick > 4  ) {
+							
+						if ( this.player.direction == 0 && this.player.framex < 3 ) {		
+							this.player.framex += 1;
+						
+						} else if ( this.player.direction == 1 && this.player.framex > 0 ) {
+							this.player.framex -= 1;
+
+						}	
+
+						this.player.tick = 0;
+					}
+ 				}
+
+ 				
+			}
+			
+			this.player.y_head = 16 ;	
+			this.player.x_head = 38 ;
+
+			this.player.framey = 4 + this.player.direction;
+			
+				
+			if ( this.player.direction == 1 ) {
+				this.player.x_head = 46;
+			}
+
+		} else {
+
+			// Dropping 
+			this.player.terminalvelocity_length = 0;
+
+			var excess 	= this.player_collide_with_wall( 3 , 0.8 ) ;
+			var excess2 = this.player_collide_with_wall( 3 , 3.2 ) ; 
+
+			if ( excess == 0 && excess2 == 0 ) {
+				
+				this.player.falling = 2 ;
+				this.player.upwardspeed = 0.8;
+
+			} else if ( excess2 > 0 && excess == 0 ) {
+
+				this.player.y += 2.4;
+				
+			} else if ( excess > 0.81 ) {
+				
+				this.player.y -= excess >> 0;
+				
+			}	
+		}
+	}
+
+
+	//-------
+	this.player_fire = function() {
+
+		// Firing
+		if ( this.player.firing > 0 && 
+			 this.player.in_pain == 0) {
+			
+			if ( this.player.direction == 0 ) {
+				this.player.framex_head = this.player.firing;
+			} else {
+				this.player.framex_head = 3 - this.player.firing;
+			}
+			
+			if ( this.player.tick2 > 4 ) { 
+				this.player.firing += 1;
+				if ( this.player.firing >= 4 ) {
+					this.firebullet();
+					this.player.firing = 0;
+				}
+
+				this.player.tick2 = 0;
+			}
+		}
+	}
+
+
+
+
+	//----
+	this.player_idle = function() {
+
+		// Idle
+		if ( this.player.falling == 0 && 
+			 this.player.walking == false && 
+			 this.player.crouching == false && 
+			 this.player.in_pain == 0 )  {
+
+			this.player.framex = this.player.framex % 4;
+			this.player.framey = 2  + this.player.direction ;
+				
+			if ( this.player.tick > 12 ) {
+
+				if ( this.player.direction == 0 ) {
+					this.player.framex  = (this.player.framex + 1 ) % 4 ;
+				} else {
+					this.player.framex  = ( this.player.framex + 3 ) % 4;
+				}
+				this.player.tick = 0;
+
+			}
+
+			if ( this.player.direction == 0 ) {
+				
+				var head_offset_y = [ 2, 1, -1 , 1 ];
+				var head_offset_x = [ -1, 0,  1,  0 ];
+				this.player.y_head = 14 + head_offset_y[ this.player.framex ];
+				this.player.x_head = 39 + head_offset_x[ this.player.framex ];
+			
+			} else {
+				
+				var head_offset_y = [ 1,  -1,  1 , 2 ];
+				var head_offset_x = [ 0,  -1,  0,  1 ];
+				this.player.y_head = 14 + head_offset_y[ this.player.framex ];
+				this.player.x_head = 39 + head_offset_x[ this.player.framex ];
+			}
+
+				
+		}
+	}
+
+
+
+	//-------
+	this.player_inpain = function() {
+
+		// In Pain
+		if ( this.player.in_pain > 0 ) {
+
+
+			this.player.framex = this.player.direction + 4;
+			this.player.framey = 2;	
+			this.player.y_head = 45 ;
+			this.player.x_head = 38 ;
+
+			if ( this.player.direction == 1 ) {
+				this.player.x_head = 41;
+			}
+			this.player.in_pain -= 1;
+		}
+	}
+
+	//-------------
+	this.player_jump = function() {
+
+		// Initiate Jump 
+		if ( this.player.control_direction[1] == 1 ) {
+
+			if ( this.player.falling == 0 && 
+				 this.player.crouching == false && 
+				 this.player.in_pain == 0 ) {
+				
+				this.player.upwardspeed = -1.0 * this.setting_jump_height ;
+				this.player.falling 	= 1;
+
+				if ( this.player.direction == 0 ) {
+					this.player.framex = 0;
+				} else {
+					this.player.framex = 3;
+				}
+
+			}	
+		}
+	}
+
+
+
+
+	//-------
+	this.player_pickup_objects = function() {
+
+		// Player pickup
+		if ( this.map.layers && this.map.layers[ this.pickableobjectlayer_id ]["objects"] ) {
+
+			var objects_arr = this.map.layers[ this.pickableobjectlayer_id ]["objects"];
+			for ( var i = objects_arr.length - 1 ; i >= 0 ; i-- ) {
+				
+				object = objects_arr[i];
+				var diffx = ( object.x + this.setting_minblocksize / 2 ) - ( this.player.x + this.player.width / 2 );
+				var diffy = ( object.y + this.setting_minblocksize / 2 ) - ( this.player.y + this.player.height / 2 ) ;
+
+				if ( diffx * diffx + diffy * diffy < this.setting_minblocksize * this.setting_minblocksize ) {
+
+					if ( object.name == "key" ) {
+						this.player.inventory.push( object );
+					
+					} else if ( object.name == "coinup" ) {
+
+						if ( this.player.coincount < 5 ) {
+							this.player.coincount += 1 ;
+						}
+					
+					} else if ( object.name == "powerup" ) {
+
+
+					} 
+
+
+					objects_arr.splice( i , 1 );
+					this.sndPickup.play();
+					this.fireparticle( object.x + 10 , object.y + 10 , 1 , 1 , 1 , 7 ,  1 );
+					
+				}
+			}
+		}
+	}
+
+
+	//-----
+	this.player_walkleft = function() {
+
+
+
+		// Walking left
+		this.player.walking   = false;
+		if ( this.player.control_direction[0] == 1 ) {
+
+			if ( this.player.crouching == false && this.player.in_pain == 0 ) {
+
+				var excess = this.player_collide_with_wall( 0 , this.player.falling > 0 ? - this.setting_falling_horizontal : - this.setting_walking_speed ) ;
+
+				if ( excess > 0 ) {
+					//this.player.x -= excess ;
+				
+				} else {
+
+					if ( this.player.falling > 0 ) {
+
+						if ( this.player.falling == 1 ) {
+							this.player.x -= this.setting_jump_xdistance;
+						} else {
+							this.player.x -=  this.setting_falling_horizontal;
+						}
+
+					} else {
+						this.player.x -=  this.setting_walking_speed;;
+						this.player.framey = 0;
+						if ( this.player.tick >  this.setting_walkcycle_interval ) {
+							this.player.framex  = (this.player.framex + 1 ) % 8 ;
+							this.player.tick = 0;
+						}
+					}
+					this.player.walking   = true;
+				} 	
+
+				this.player.direction = 0;
+				if ( this.player.falling == 0 && ( this.player.framex == 0 || this.player.framex == 4 ) ) {
+					this.sndPlayerWalk.play();
+				}
+
+				var head_offset_y = [  3,  0, -2,  0,  4, 0 , -2,  0 ];
+				this.player.y_head = 15 + head_offset_y[ this.player.framex ];
+				
+				var head_offset_x = [  2, -1,  0, -1,  0, 0 ,  0 , 0  ];
+				this.player.x_head = 36 + head_offset_x[ this.player.framex ];
+
+			}
+		}
+
+	}
+
+
+	//---------------
+	this.player_walkright = function() {
+
+		// Walking right
+		if ( this.player.control_direction[2] == 1 ) {
+			
+			if ( this.player.crouching == false && this.player.in_pain == 0 ) {
+
+				var excess = this.player_collide_with_wall( 2 , this.player.falling > 0 ? this.setting_falling_horizontal : this.setting_walking_speed ) ;
+
+				if ( excess > 0 ) {
+					//this.player.x -= excess ;
+				
+				} else {
+
+					if ( this.player.falling > 0 ) {
+						
+						if ( this.player.falling == 1 ) {
+							this.player.x += this.setting_jump_xdistance;
+						} else {
+							this.player.x += this.setting_falling_horizontal;
+						}
+
+					} else {
+						this.player.x += this.setting_walking_speed;
+						this.player.framey = 1;
+
+						if ( this.player.tick > this.setting_walkcycle_interval ) {
+							this.player.framex  = (this.player.framex + 7 ) % 8 ;
+							this.player.tick = 0;
+						}
+					}
+					this.player.walking   = true;
+				}	
+				this.player.direction = 1;
+				
+				if ( this.player.falling == 0 && ( this.player.framex == 7 || this.player.framex == 3 ) ) {
+					this.sndPlayerWalk.play();
+				}
+
+				var head_offset_y = [  0, -2, 0, 4, 0, -2, 0 , 3 ];
+				this.player.y_head = 15 + head_offset_y[ this.player.framex ];
+				
+				var head_offset_x = [  0, 0, 0, 0, 1, 0, 1, -2  ];
+				this.player.x_head = 44 + head_offset_x[ this.player.framex ];
+
+
+			}
+		} 
+
+	}
+
+
+
+	//------
+	this.rand = function( x ) {
+
+		return Math.random() * x >> 0;
+
+	}
+
+
 	//-----------------------------------
 	this.reinit_game = function() {
 
@@ -1532,6 +2001,8 @@ function Dogewarrior() {
 		this.player.firing = 0;
 		this.player.terminalvelocity_length = 0;
 		this.player.in_pain = 0;
+		this.player.coincount = 1;
+		this.player.coinpower = 1;
 
 
 		this.teleporting = 0;
@@ -1546,7 +2017,90 @@ function Dogewarrior() {
 		}
 
 
+		this.monsters = [];
+
 	}	
+
+
+	//----------------------------------
+	this.spawn_monsters = function() {
+
+		// Monster spawner
+		if ( this.map.layers && this.map.layers[ this.monsterobjectlayer_id ]["objects"] ) {
+
+			var objects_arr = this.map.layers[ this.monsterobjectlayer_id ]["objects"];
+
+			for ( var i = objects_arr.length - 1  ; i >= 0 ; i-- ) {
+				
+				var object = objects_arr[i];
+
+				if  ( !(parseInt( object.properties.triggerid ) > 0 ) ) {
+					
+					if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
+					 	 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+
+						var spawncount 		= parseInt( object.properties.spawncount ) ;
+						var spawninterval 	= parseInt( object.properties.spawninterval ); 
+
+						if ( typeof object.tick == "undefined" ) {
+							object.tick = spawninterval;
+						} else {
+							object.tick += 1;
+						}
+
+
+						if ( object.tospawn_interval && object.tick >= object.tospawn_interval ) {
+
+							var monster = { 
+								x:object.x , 
+								y:object.y , 
+								name:object.name , 
+								direction:parseInt(object.properties.direction), 
+								hp:parseInt(object.properties.hp),
+								tick:0,
+							};
+
+							monster.framex = 0;
+							if ( monster.name == "monster_grounded" ) {
+								monster.framey = 0;
+								monster.min_x  = parseInt(object.properties.min_x);
+								monster.max_x  = parseInt(object.properties.max_x);
+							
+							} else if ( monster.name == "monster_flying") {
+
+								monster.framey = 2;
+								monster.radius = 0;
+								monster.tr 	   = 200;
+								monster.cx = object.x ;
+								monster.cy = object.y ;
+								monster.theta = 0;
+							}
+
+
+							this.monsters.push( monster );	
+							
+							if ( object.properties.spawncount == 0 ) {
+								//Delete spawner when spawn count reaches 0
+								objects_arr.splice( i , 1 );
+							}	
+							object.tospawn_interval = 0;
+						}
+
+						if ( spawncount > 0  && object.tick >= spawninterval ) {
+
+							this.sndCatpurr.play();
+							object.tick = 0;
+							this.fireparticle( object.x + 20  , object.y + 40 , 2 , 2 , 2 , 6 , 4 );
+							object.tospawn_interval = 12;
+							object.properties.spawncount = spawncount - 1;
+							
+						}
+					}
+				}
+
+			}
+		}
+	}
 
 
 	//-------------------------------------------------------------------------------------
