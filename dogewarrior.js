@@ -10,12 +10,11 @@ function Dogewarrior() {
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
-	this.total_resource  		= 8;
+	this.total_resource  		= 9;
 
-	this.cvwidth 		 		= 1200;
-	this.cvheight 		 		= 600;
+	
 	this.ctxt;
-	this.timerinterval   		= 20;
+	this.timerinterval   		= 15;
 	this.player 				= {};
 	this.camera 				= {};
 
@@ -33,6 +32,7 @@ function Dogewarrior() {
 	this.setting_gravity 			= 1.1;
 	this.setting_maxparticle 		= 40;
 	this.setting_maxbullet			= 30;
+	this.setting_monster_anim_interval = 8;
 
 
 	this.sprite_mainchar 			= {};
@@ -47,10 +47,38 @@ function Dogewarrior() {
 	this.monsterobjectlayer_id 		= 6;
 	this.triggerlayer_id 			= 7;
 
+	this.keypads 					= [];
 
 
 
 
+
+
+	this.resizewindow = function() {
+
+		if ( window.innerWidth > 1600 ) {
+			dw.canvas.width = 1600;
+		} else if ( window.innerWidth < 480 ) {
+
+			dw.canvas.width = 480;
+
+		} else {
+			dw.canvas.width = window.innerWidth - 4;
+    	}
+
+    	if ( window.innerHeight > 1200 ) {
+    		dw.canvas.height = 1200;
+
+    	} else if ( window.innerWidth < 480 ) {
+    		dw.canvas.width = 480;	
+    	} else {
+    		dw.canvas.height = window.innerHeight - 4;
+    	}
+
+    	if ( this.ismobile == 1 ) {
+    		this.initKeypad();
+    	}
+    }
 	
 
 
@@ -61,13 +89,23 @@ function Dogewarrior() {
 		if (window.top !== window.self) {
 			window.top.location.replace(window.self.location.href);
 		}
-
-		document.body.addEventListener('touchstart', function(e){ e.preventDefault(); });
 		
-		var canvas = document.getElementById("cv");
-		this.ctxt = canvas.getContext('2d');
+		//if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		// 	this.ismobile = 1;
+		//}
+
+		this.canvas = document.getElementById("cv");
+		this.canvas.style.backgroundColor = "#000000";
+		
+		window.addEventListener('resize', function(e) {
+			dw.resizewindow();
+		}, false);
+		this.resizewindow();
+
+		
 
 
+		this.ctxt = this.canvas.getContext('2d');
 		this.player.width 				= 120;
 		this.player.height 				= 120;
 		this.player.control_direction 	= [0,0,0,0];
@@ -126,6 +164,13 @@ function Dogewarrior() {
 			dw.on_load_completed();
 		},false);
 		
+		this.sprite_keypad = new Image();
+		this.sprite_keypad.src = "images/keypad.png";
+		this.sprite_particle.addEventListener('load', function() {
+			dw.on_load_completed();
+		},false);
+			
+
 
 		this.sndPlayerWalk = new Audio("sounds/sndPlayerWalk0.wav"); 
 		this.sndWow 	   = new Audio("sounds/wow.wav");
@@ -139,7 +184,6 @@ function Dogewarrior() {
 		this.sndMovingwall = new Audio("sounds/movingwall.wav");
 		this.sndPickup 	   = new Audio("sounds/pickup.wav");
 		this.sndCatpurr    = new Audio("sounds/catpurr.wav");
-
 		this.sndSplash     = new Audio("sounds/splash.wav");
 		this.sndSplash2    = new Audio("sounds/splash2.wav");
 
@@ -186,6 +230,108 @@ function Dogewarrior() {
 			dw.on_keyUp( evt );
 		}, false );	
 
+		
+		document.addEventListener('touchstart', function(e) {
+		    e.preventDefault();
+		    dw.on_touchstart( e );
+		}, false);
+
+		document.addEventListener('touchend', function(e) {
+		    e.preventDefault();
+		    dw.on_touchend( e );
+		}, false);
+			
+		
+
+	}
+
+	
+
+
+	//----------
+	// Keypad for mobile
+	this.initKeypad = function() {
+
+		var keypad;
+		this.keypads.length = 0;
+
+
+		keypad = {
+			framex:1,
+			framey:0,
+			x:this.canvas.width  - 2 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:38
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:0,
+			framey:0,
+			x:this.canvas.width  - 3 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:37
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:3,
+			framey:0,
+			x:this.canvas.width  - 2 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:40
+		}
+		this.keypads.push( keypad );
+		
+		keypad = {
+			framex:2,
+			framey:0,
+			x:this.canvas.width  - 1 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:39
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:4,
+			framey:0,
+			x:this.canvas.width  - 3 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:3738
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:5,
+			framey:0,
+			x:this.canvas.width  - 1 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:3839
+		}
+
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:0,
+			framey:1,
+			x: 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:90
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:1,
+			framey:1,
+			x: 1 *( this.setting_minblocksize * 2 ) + 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:88
+		}
+		this.keypads.push( keypad );
+			
+
+		
+
 	}
 
 
@@ -213,11 +359,14 @@ function Dogewarrior() {
 	this.on_draw = function() {
 
 		var dw = this;
-		this.ctxt.clearRect( 0,0, this.cvwidth , this.cvheight );
+		this.ctxt.clearRect( 0,0, this.canvas.width , this.canvas.height );
 
 
 		var cam_tile_y = this.camera.y / this.setting_minblocksize >> 0;
 		var cam_tile_x = this.camera.x / this.setting_minblocksize >> 0;
+
+		var tilex_count = this.canvas.width / this.setting_minblocksize >> 0 ;
+		var tiley_count = this.canvas.height / this.setting_minblocksize >> 0 ;
 
 
 		// Draw Background tiles
@@ -225,8 +374,8 @@ function Dogewarrior() {
 			for ( var layer = 0 ; layer < 3 ; layer += 1 ) {
 
 				
-				for ( var i = cam_tile_y - 1; i < cam_tile_y + 16 ; i++ ) {
-					for ( var j = cam_tile_x - 1; j < cam_tile_x + 31 ; j++ ) {
+				for ( var i = cam_tile_y - 1; i < cam_tile_y + tiley_count + 2 ; i++ ) {
+					for ( var j = cam_tile_x - 1; j < cam_tile_x + tilex_count + 2 ; j++ ) {
 
 						var data =0;
 						if ( i >= 0 && j >= 0 && i < this.map.layers[layer].height && j < this.map.layers[layer].width   ) {
@@ -272,8 +421,8 @@ function Dogewarrior() {
 				object = objects_arr[i];
 
 				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
-					 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 					if ( object.name == "switch" ) {
 
@@ -319,8 +468,8 @@ function Dogewarrior() {
 				object = objects_arr[i];
 
 				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
-					 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 					if ( object.name == "key" ) {
 
@@ -379,8 +528,8 @@ function Dogewarrior() {
 				object = objects_arr[i];
 
 				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
-					 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 				
 					if ( object.name == "movingplatform") {
@@ -468,8 +617,8 @@ function Dogewarrior() {
 			var object = this.monsters[i];
 
 			// Only draw visible object. The camera is always half screen left and top of player so
-			if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
-				 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+			if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+				 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 				
 				this.ctxt.drawImage( this.sprite_monster, 
@@ -546,7 +695,7 @@ function Dogewarrior() {
 									this.setting_minblocksize,
 									this.setting_minblocksize,
 						i * ( this.setting_minblocksize + 10 ) + 10,
-						this.cvheight - ( this.setting_minblocksize + 10 ),
+						this.canvas.height - ( this.setting_minblocksize + 10 ),
 							this.setting_minblocksize, 
 							this.setting_minblocksize );
 
@@ -558,7 +707,7 @@ function Dogewarrior() {
 											this.setting_minblocksize,
 											this.setting_minblocksize,
 								i * ( this.setting_minblocksize + 10 ) + 10 + 5,
-								this.cvheight - ( this.setting_minblocksize + 10 ) + 5,
+								this.canvas.height - ( this.setting_minblocksize + 10 ) + 5,
 									this.setting_minblocksize - 10, 
 									this.setting_minblocksize - 10);	
 					
@@ -573,7 +722,7 @@ function Dogewarrior() {
 		if ( this.teleporting > 0 ) {
 			
 			this.ctxt.beginPath()
-			this.ctxt.rect( 0 , 0, this.cvwidth, this.cvheight );
+			this.ctxt.rect( 0 , 0, this.canvas.width, this.canvas.height );
 
 			var alpha;
 			if ( this.teleporting > 10 ) {
@@ -588,6 +737,27 @@ function Dogewarrior() {
       		this.ctxt.stroke();
       		this.ctxt.closePath();
       	}
+
+
+      	// Draw Keypad 
+      	//if ( this.ismobile == 1 ) {
+
+      		for ( var i = 0 ; i < this.keypads.length ; i++ ) {
+      			
+      			object = this.keypads[i];	
+      			this.ctxt.drawImage( this.sprite_keypad, 
+										object.framex * this.setting_minblocksize * 2,
+										object.framey * this.setting_minblocksize * 2,	
+										this.setting_minblocksize * 2,
+										this.setting_minblocksize * 2,
+								object.x ,
+								object.y ,
+									this.setting_minblocksize * 2, 
+									this.setting_minblocksize * 2);
+
+
+      		}
+      	//}
 
 		this.debug();
 
@@ -628,6 +798,54 @@ function Dogewarrior() {
 
 	}
 
+	//-----------
+	this.on_touchstart = function( touch ) {
+
+		for ( var i = 0 ; i < this.keypads.length ; i++ ) {
+			var keypad = this.keypads[i];
+			if ( touch.pageX >= keypad.x && touch.pageX <= keypad.x + 2 * this.setting_minblocksize && 
+				 touch.pageY >= keypad.y && touch.pageY <= keypad.y + 2 * this.setting_minblocksize) {
+
+				var keyCode = keypad.keycode;
+				if ( keyCode >= 37 && keyCode <= 40 ) {
+					this.player.control_direction[ keyCode - 37 ] = 1 ;
+				
+				} else if ( keyCode == 3738 ) {
+				
+					this.player.control_direction[ 0 ] = 1;
+					this.player.control_direction[ 1 ] = 1;
+
+				} else if ( keyCode == 3839 ) {
+
+					this.player.control_direction[ 2 ] = 1;
+					this.player.control_direction[ 1 ] = 1;
+
+				} else if ( keyCode == 90 ) {
+
+					if ( this.player.firing == 0  && this.player.in_pain == 0) {
+						
+						this.player.firing = 1;
+					}
+				
+				} else if ( keyCode == 88 ) {
+					this.doaction();
+				}
+
+			} 
+		}
+	}
+
+
+	//-------
+	this.on_touchend = function(touch ) {
+
+		for ( i = 0 ; i < 4; i++ ) {
+			this.player.control_direction[ i ] = 0 ;
+		}	
+	}	
+
+
+
 	//-------------------------------------------------------------------------------------
 	this.on_load_completed = function() {
 
@@ -638,10 +856,14 @@ function Dogewarrior() {
 			
 			console.log("Loading Completed");
 			this.reinit_game();
-			setTimeout( function() {
+			
+			//setTimeout( function() {
+			//	dw.on_timer();
+			//}, this.timerinterval );
+			window.requestAnimationFrame( function() {
 				dw.on_timer();
-			}, this.timerinterval );
-		
+			});
+
 		} else {
 			this.update_loading_screen();
 		}
@@ -651,49 +873,63 @@ function Dogewarrior() {
 	this.on_timer = function() {
 
 		var dw = this;
-			
 		
-		this.player_falling();
-		this.player_crouch();
-		this.player_inpain();
-		this.player_jump();
-		this.player_walkleft();
-		this.player_walkright();
-		this.player_idle();
+		var now = Date.now()
+		if ( !this.then  || now - this.then > this.timerinterval ) {
+
+			
+			this.player_falling();
+			this.player_crouch();
+			this.player_inpain();
+			this.player_jump();
+			this.player_walkleft();
+			this.player_walkright();
+			this.player_idle();
 
 
 
-		this.player.framey_head = this.player.direction;
-		this.player.framex_head = 0;
-		if ( this.player.direction == 1 ) {
-			this.player.framex_head = 3;
+			this.player.framey_head = this.player.direction;
+			this.player.framex_head = 0;
+			if ( this.player.direction == 1 ) {
+				this.player.framex_head = 3;
+			}
+
+			this.player_fire();
+			this.spawn_monsters();
+			this.animate_monsters();
+			this.animate_bullets();
+			this.animate_particles();
+			this.animate_transition();
+			this.animate_foregroundobjects();
+			this.player_pickup_objects();
+			this.player_collide_with_trigger();
+
+			this.camera.x = this.player.x - this.canvas.width / 2  + this.player.width / 2 ;
+			
+			var camera_target_y = this.player.y - this.canvas.height / 2 + this.player.height / 2 ;
+			this.camera.y +=  (( camera_target_y - this.camera.y ) / 10 >> 0 ); 
+			
+
+			this.player.tick += 1;
+			this.player.tick2 += 1;
+
+			this.on_draw();
+
+			this.then = now;
 		}
 
-		this.player_fire();
-		this.spawn_monsters();
-		this.animate_monsters();
-		this.animate_bullets();
-		this.animate_particles();
-		this.animate_transition();
-		this.animate_foregroundobjects();
-		this.player_pickup_objects();
-		this.player_collide_with_trigger();
 
-		this.camera.x = this.player.x - this.cvwidth / 2  + this.player.width / 2 ;
 		
-		var camera_target_y = this.player.y - this.cvheight / 2 + this.player.height / 2 ;
-		this.camera.y +=  (( camera_target_y - this.camera.y ) / 10 >> 0 ); 
-		
-
-		this.player.tick += 1;
-		this.player.tick2 += 1;
-
-
-		this.on_draw();
-
-		setTimeout( function() {
+		window.requestAnimationFrame( function() {
 			dw.on_timer();
-		}, this.timerinterval );
+		});
+
+			
+			
+
+		
+		
+
 	}
 
 
@@ -765,8 +1001,8 @@ function Dogewarrior() {
 
 
 				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
-					 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 					if ( object.name == "movingplatform") {
 
@@ -848,8 +1084,8 @@ function Dogewarrior() {
 			
 			var object = this.monsters[i];
 
-			if ( object.x >= this.camera.x - this.cvwidth * 2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth * 2   && 
-				 object.y >= this.camera.y - this.cvheight * 2 && object.y <= this.camera.y + this.cvheight + this.cvheight * 2 ) {
+			if ( object.x >= this.camera.x - this.canvas.width * 2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width * 2   && 
+				 object.y >= this.camera.y - this.canvas.height * 2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height * 2 ) {
 
 				
 				object.tick += 1;
@@ -859,13 +1095,13 @@ function Dogewarrior() {
 					// position
 					if ( object.direction == 0 ) {
 						
-						object.x -= 1;
+						object.x -= object.speed;
 						if ( object.x < object.min_x * this.setting_minblocksize ) {
 							object.direction = 2;
 						}
 					
 					} else if ( object.direction == 2 ) {
-						object.x += 1;
+						object.x += object.speed;
 						if ( object.x > object.max_x  * this.setting_minblocksize ) {
 							object.direction = 0;
 							
@@ -873,7 +1109,12 @@ function Dogewarrior() {
 					}
 
 					// anim
-					if ( object.tick > 4 ) {
+					var anim_interval = this.setting_monster_anim_interval - object.speed;
+					if ( anim_interval < 1 ) {
+						anim_interval = 1;
+					}
+
+					if ( object.tick > anim_interval ) {
 						object.tick = 0;
 						if ( object.direction == 0 ) {
 							object.framey = 0;
@@ -900,8 +1141,8 @@ function Dogewarrior() {
 
 
 
-					object.cx += (this.player.x - object.cx ) / 60 >> 0;
-					object.cy += (this.player.y - object.cy ) / 60 >> 0;
+					object.cx += (this.player.x - object.cx ) / 80 >> 0;
+					object.cy += (this.player.y - object.cy ) / 80 >> 0;
 
 
 					object.x = object.radius * Math.cos( object.theta * 3.14159 / 180 ) + object.cx ;
@@ -919,7 +1160,7 @@ function Dogewarrior() {
 					}
 
 					// anim
-					if ( object.tick > 4 ) {
+					if ( object.tick > this.setting_monster_anim_interval  ) {
 						
 						object.framex  = ( object.framex + 1 ) % 3;
 						object.tick = 0;
@@ -972,8 +1213,8 @@ function Dogewarrior() {
 
 				this.player.x = this.teleport_target.x ;
 				this.player.y = this.teleport_target.y ;
-				this.camera.x = this.player.x - this.cvwidth / 2;
-				this.camera.y = this.player.y - this.cvheight / 2;
+				this.camera.x = this.player.x - this.canvas.width / 2;
+				this.camera.y = this.player.y - this.canvas.height / 2;
 				this.teleport_target = null;
 			}
 		}
@@ -1165,6 +1406,16 @@ function Dogewarrior() {
 			}
 		}	
 		// */
+		/*
+		this.ctxt.beginPath();
+		this.ctxt.rect( 
+			this.canvas.width - 84 ,
+			this.canvas.height - 84, 
+							80, 80);
+		this.ctxt.fillStyle = 'red';
+		this.ctxt.fill();
+		this.ctxt.closePath();
+		*/
 	}
 
 
@@ -1250,8 +1501,13 @@ function Dogewarrior() {
 
 											if ( this.clearlock_ifneeded( object_j ) == 0 ) {
 
-												object_j.properties.state = 1 - parseInt(object.properties.state );
-												object_j.properties.state == 0 ? this.sndOpendoor.play() : this.sndClosedoor.play();
+												if ( parseInt( object.properties.closeonly ) == 1 ) {
+													object_j.properties.state = 1;
+
+												} else {
+													object_j.properties.state = 1 - parseInt(object.properties.state );
+													object_j.properties.state == 0 ? this.sndOpendoor.play() : this.sndClosedoor.play();
+												}
 											}
 										}
 										 
@@ -1510,8 +1766,8 @@ function Dogewarrior() {
 					object = objects_arr[i];
 
 					// Only draw visible object. The camera is always half screen left and top of player so
-					if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
-						 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+					if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+						 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 						if   ( 	  object.name == "movingplatform" || 
 							 	( object.name == "trapdoor" && parseInt( object.properties.state ) == 1 ) || 
@@ -1827,7 +2083,9 @@ function Dogewarrior() {
 					
 					} else if ( object.name == "powerup" ) {
 
-
+						if ( this.player.coinpower < 10 ) {
+							this.player.coinpower += 1;
+						}
 					} 
 
 
@@ -1963,6 +2221,14 @@ function Dogewarrior() {
 		this.player.x = 500;
 		this.player.y = 3640;
 
+
+		//this.player.x = 32 * 40;
+		//this.player.y = 91 * 40;
+
+		// World 1.5
+		//this.player.x = 101 * 40;
+		//this.player.y = 176 * 40;
+
 		
 		// World 2 Start
 		//this.player.x = 44 * 40;
@@ -1979,6 +2245,13 @@ function Dogewarrior() {
 		//this.player.x = 86 * 40;
 		//this.player.y = 145 * 40;
 
+		// switch room
+		//this.player.x = 185 * 40;
+		//this.player.y = 93 * 40;
+
+		// World 3 begin
+		//this.player.x = 104 * 40;
+		//this.player.y = 176 * 40;
 
 		
 		this.player.framex = 0;
@@ -2036,8 +2309,8 @@ function Dogewarrior() {
 
 				if  ( !(parseInt( object.properties.triggerid ) > 0 ) ) {
 					
-					if ( object.x >= this.camera.x - this.cvwidth/2  && object.x <= this.camera.x + this.cvwidth  + this.cvwidth/2   && 
-					 	 object.y >= this.camera.y - this.cvheight/2 && object.y <= this.camera.y + this.cvheight + this.cvheight/2 ) {
+					if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 	 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 						var spawncount 		= parseInt( object.properties.spawncount ) ;
 						var spawninterval 	= parseInt( object.properties.spawninterval ); 
@@ -2059,6 +2332,12 @@ function Dogewarrior() {
 								hp:parseInt(object.properties.hp),
 								tick:0,
 							};
+
+							if ( object.properties.speed ) {
+								monster.speed = parseInt( object.properties.speed );
+							} else {
+								monster.speed = 1;
+							}
 
 							monster.framex = 0;
 							if ( monster.name == "monster_grounded" ) {
@@ -2108,13 +2387,13 @@ function Dogewarrior() {
 
 		var percent_complete = ( this.resource_loaded * 100.0 / this.total_resource).toFixed(2);
 		
-		this.ctxt.clearRect( 0,0, this.cvwidth , this.cvheight );
+		this.ctxt.clearRect( 0,0, this.canvas.width , this.canvas.height );
 		this.ctxt.fillStyle = "white";
 		this.ctxt.font = "14px Comic Sans MS";
 
 		var msg = "Loading Resources . " + percent_complete + "% loaded";
 
-		this.ctxt.fillText( msg , this.cvwidth / 2 - msg.length * 6 / 2 , this.cvheight /2 );
+		this.ctxt.fillText( msg , this.canvas.width / 2 - msg.length * 6 / 2 , this.canvas.height /2 );
 	}
 
 	
