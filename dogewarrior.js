@@ -798,7 +798,10 @@ function Dogewarrior() {
 			}
 
 			var lifebarsize = this.player.hp * 68 / this.setting_hp_per_life  >> 0
-
+			if ( lifebarsize < 1 ) {
+				lifebarsize = 1 
+			}
+			
 			this.ctxt.drawImage( this.sprite_objecttiles, 
 									320,
 									0,
@@ -808,6 +811,7 @@ function Dogewarrior() {
 								50,
 								80,
 								40 );
+			
 
 			this.ctxt.drawImage( this.sprite_objecttiles, 
 										320,
