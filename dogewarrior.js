@@ -14,7 +14,7 @@ function Dogewarrior() {
 
 	
 	this.ctxt;
-	this.timerinterval   		= 15;
+	this.timerinterval   		= 20;
 	this.player 				= {};
 	this.camera 				= {};
 
@@ -26,14 +26,23 @@ function Dogewarrior() {
 	this.setting_walkcycle_interval = 3;
 
 
-	this.setting_bullet_vx 			= 18;
-	this.setting_bullet_vy 			= -4;
-	this.setting_minblocksize 		= 40;
-	this.setting_gravity 			= 1.1;
-	this.setting_maxparticle 		= 40;
-	this.setting_maxbullet			= 30;
-	this.setting_monster_anim_interval = 8;
+	this.setting_bullet_vx 				= 18;
+	this.setting_bullet_vy 				= -4;
+	this.setting_monster_bullet_vy 		= -16;
+	this.setting_monster_boss_bullet_vy = -8;
 
+
+	this.setting_minblocksize 			= 40;
+	this.setting_gravity 				= 1.1;
+	this.setting_maxparticle 			= 40;
+	this.setting_maxbullet				= 100;
+	this.setting_monster_anim_interval 	= 8;
+
+	this.setting_initial_life_count    = 3;
+	this.setting_hp_per_life 		   = 12;
+	this.setting_fallinjury 		   = 4;
+
+		
 
 	this.sprite_mainchar 			= {};
 	this.map 						= {};
@@ -51,32 +60,29 @@ function Dogewarrior() {
 
 
 
+	
 
 
 
+	//--------------------------------------
 	this.resizewindow = function() {
 
-		if ( window.innerWidth > 1600 ) {
-			dw.canvas.width = 1600;
-		} else if ( window.innerWidth < 480 ) {
-
-			dw.canvas.width = 480;
-
-		} else {
-			dw.canvas.width = window.innerWidth - 4;
-    	}
-
-    	if ( window.innerHeight > 1200 ) {
-    		dw.canvas.height = 1200;
-
-    	} else if ( window.innerWidth < 480 ) {
-    		dw.canvas.width = 480;	
-    	} else {
-    		dw.canvas.height = window.innerHeight - 4;
-    	}
+		
+    	
+    	this.canvas.width = window.innerWidth ;
+    	this.canvas.height = window.innerHeight ;
+    	
+    	if ( this.canvas.width > 1200 ) {
+    		this.canvas.width = 1200;
+    		this.canvas.height = 600;
+		}
+		
 
     	if ( this.ismobile == 1 ) {
-    		this.initKeypad();
+    	
+    		//this.initKeypad();
+    	
+    		
     	}
     }
 	
@@ -90,13 +96,14 @@ function Dogewarrior() {
 			window.top.location.replace(window.self.location.href);
 		}
 		
-		//if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-		// 	this.ismobile = 1;
-		//}
-
+		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		 	this.ismobile = 1;
+		}
+		
 		this.canvas = document.getElementById("cv");
 		this.canvas.style.backgroundColor = "#000000";
 		
+
 		window.addEventListener('resize', function(e) {
 			dw.resizewindow();
 		}, false);
@@ -186,6 +193,14 @@ function Dogewarrior() {
 		this.sndCatpurr    = new Audio("sounds/catpurr.wav");
 		this.sndSplash     = new Audio("sounds/splash.wav");
 		this.sndSplash2    = new Audio("sounds/splash2.wav");
+		
+		this.sndBoom 	   = new Audio("sounds/boom.wav");
+		this.sndBoom2 	   = new Audio("sounds/boom2.wav");
+
+		this.sndRespawn    = new Audio("sounds/respawn.wav");
+		this.sndGameover   = new Audio("sounds/gameover.wav");
+		this.sndGiantWalk  = new Audio("sounds/giantwalk.wav");
+		this.sndMonsterFire = new Audio("sounds/monsterfire.wav");
 
 
 
@@ -194,8 +209,10 @@ function Dogewarrior() {
 
 		this.loadJSON("maps/level01.json",function( map ) {
 			dw.map = map;
-			dw.on_load_completed();
 			dw.auto_calculate_monster_boundary();
+		
+			dw.on_load_completed();
+			
 		}, false); 
 
 		
@@ -231,18 +248,30 @@ function Dogewarrior() {
 		}, false );	
 
 		
-		document.addEventListener('touchstart', function(e) {
-		    e.preventDefault();
-		    dw.on_touchstart( e );
-		}, false);
-
-		document.addEventListener('touchend', function(e) {
-		    e.preventDefault();
-		    dw.on_touchend( e );
-		}, false);
+		if ( this.ismobile == 1 ) {
 			
-		
 
+			window.addEventListener('orientationchange', function(e) {
+				dw.on_orientationchange(e);
+			}, false );
+
+
+			document.addEventListener('touchstart', function(e) {
+			    e.preventDefault();
+			    dw.on_touchstart( e );
+			}, false);
+
+			document.addEventListener('touchend', function(e) {
+			    e.preventDefault();
+			    dw.on_touchend( e );
+			}, false);
+				
+		}
+
+	}
+
+	//------------------
+	this.on_orientationchange = function( evt ) {
 	}
 
 	
@@ -394,7 +423,9 @@ function Dogewarrior() {
 								sprite = this.sprite_objecttiles;
 							}
 
-							this.ctxt.drawImage( sprite , 
+							if ( tile_framex >= 0 && tile_framey >= 0 ) {
+
+								this.ctxt.drawImage( sprite , 
 												this.setting_minblocksize * tile_framex,
 												this.setting_minblocksize * tile_framey,
 												this.setting_minblocksize,
@@ -404,6 +435,7 @@ function Dogewarrior() {
 										this.setting_minblocksize,
 										this.setting_minblocksize 
 											);
+							}
 					
 						}	
 					}
@@ -412,13 +444,11 @@ function Dogewarrior() {
 		}
 
 		// Draw background objects
-		if ( this.map.layers && this.map.layers[ this.backgroundobjectlayer_id ]["objects"] ) {
+		if ( this.backgroundobjects ) {
 
-			var objects_arr = this.map.layers[ this.backgroundobjectlayer_id ]["objects"];
-
-			for ( var i = 0 ; i < objects_arr.length ; i++ ) {
+			for ( var i = 0 ; i <  this.backgroundobjects.length ; i++ ) {
 				
-				object = objects_arr[i];
+				object =  this.backgroundobjects[i];
 
 				// Only draw visible object. The camera is always half screen left and top of player so
 				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
@@ -459,13 +489,11 @@ function Dogewarrior() {
 
 
 		// Draw pickables
-		if ( this.map.layers && this.map.layers[ this.pickableobjectlayer_id ]["objects"] ) {
+		if ( this.pickables ) {
 
-			var objects_arr = this.map.layers[ this.pickableobjectlayer_id ]["objects"];
-
-			for ( var i = 0 ; i < objects_arr.length ; i++ ) {
+			for ( var i = 0 ; i < this.pickables.length ; i++ ) {
 				
-				object = objects_arr[i];
+				object = this.pickables[i];
 
 				// Only draw visible object. The camera is always half screen left and top of player so
 				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
@@ -509,6 +537,18 @@ function Dogewarrior() {
 								object.y - this.camera.y, 
 									this.setting_minblocksize, 
 									this.setting_minblocksize );	
+					
+					} else if ( object.name == "hint" ) {
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											5 * this.setting_minblocksize ,
+											5 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );
 					} 
 
 
@@ -519,13 +559,11 @@ function Dogewarrior() {
 
 
 		// Draw foreground objects
-		if ( this.map.layers && this.map.layers[ this.foregroundobjectlayer_id ]["objects"] ) {
+		if ( this.foregroundobjects ) {
 
-			var objects_arr = this.map.layers[ this.foregroundobjectlayer_id ]["objects"];
-
-			for ( var i = 0 ; i < objects_arr.length ; i++ ) {
+			for ( var i = 0 ; i < this.foregroundobjects.length ; i++ ) {
 				
-				object = objects_arr[i];
+				object = this.foregroundobjects[i];
 
 				// Only draw visible object. The camera is always half screen left and top of player so
 				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
@@ -587,51 +625,79 @@ function Dogewarrior() {
 			}
 		}	
 
+		if ( this.player.death == 0 ) {
 
-		// Draw Main Characters
-		this.ctxt.drawImage( this.sprite_mainchar["body"] , 
-							   		this.player.width  * this.player.framex , 
-							   		this.player.height * this.player.framey , 
-							   		this.player.width , 
-							   		this.player.height , 
-							   this.player.x - this.camera.x, 
-							   this.player.y - this.camera.y, 
-							   this.player.width , 
-							   this.player.height );
-		
-		this.ctxt.drawImage( this.sprite_mainchar["head"] , 
-							   		40 * this.player.framex_head,
-							   		40 * this.player.framey_head,
-							   		40,
-							   		40,
-							   	this.player.x - this.camera.x + this.player.x_head ,
-							   	this.player.y - this.camera.y + this.player.y_head ,
-							   	40,
-							   	40 );
+			// Draw Main Characters
+			this.ctxt.drawImage( this.sprite_mainchar["body"] , 
+								   		this.player.width  * this.player.framex , 
+								   		this.player.height * this.player.framey , 
+								   		this.player.width , 
+								   		this.player.height , 
+								   this.player.x - this.camera.x, 
+								   this.player.y - this.camera.y, 
+								   this.player.width , 
+								   this.player.height );
+			
+			this.ctxt.drawImage( this.sprite_mainchar["head"] , 
+								   		40 * this.player.framex_head,
+								   		40 * this.player.framey_head,
+								   		40,
+								   		40,
+								   	this.player.x - this.camera.x + this.player.x_head ,
+								   	this.player.y - this.camera.y + this.player.y_head ,
+								   	40,
+								   	40 );
 
-
+		}
 
 		// Draw monster
 		for ( var i = 0 ; i < this.monsters.length ; i++ ) {
 			
 			var object = this.monsters[i];
 
+
 			// Only draw visible object. The camera is always half screen left and top of player so
 			if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
 				 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
-				
-				this.ctxt.drawImage( this.sprite_monster, 
-									( object.framex ) * ( 2 * this.setting_minblocksize ) ,
-									( object.framey ) * ( 2 * this.setting_minblocksize ) ,
-									2 * this.setting_minblocksize,
-									2 * this.setting_minblocksize,
-						  object.x - this.camera.x , 
-						  object.y + 3 - this.camera.y, 
-							2 * this.setting_minblocksize, 
-							2 * this.setting_minblocksize );	
+				if ( object.name == "monster_boss" ) {
 
-				 
+					this.ctxt.drawImage( this.sprite_monster, 
+										0   + ( object.framex ) * ( 4 * this.setting_minblocksize ) ,
+										400 + ( object.framey ) * ( 5 * this.setting_minblocksize ) ,
+										4 * this.setting_minblocksize,
+										5 * this.setting_minblocksize,
+							  object.x - 44 - this.camera.x , 
+							  object.y - 40 - this.camera.y , 
+								4 * this.setting_minblocksize, 
+								5 * this.setting_minblocksize );	
+
+					//head
+					this.ctxt.drawImage( this.sprite_monster, 
+										240   + ( object.head_framex ) * ( 2 * this.setting_minblocksize ) ,
+										160   + ( object.head_framey ) * ( 2 * this.setting_minblocksize ) ,
+										2 * this.setting_minblocksize,
+										2 * this.setting_minblocksize,
+							  object.x +  0 + object.head_offx  - this.camera.x, 
+							  object.y - 50 + object.head_offy  - this.camera.y, 
+								2 * this.setting_minblocksize, 
+								2 * this.setting_minblocksize );	
+
+
+				} else {
+				
+					this.ctxt.drawImage( this.sprite_monster, 
+										( object.framex ) * ( 2 * this.setting_minblocksize ) ,
+										( object.framey ) * ( 2 * this.setting_minblocksize ) ,
+										2 * this.setting_minblocksize,
+										2 * this.setting_minblocksize,
+							  object.x - this.camera.x , 
+							  object.y + 3 - this.camera.y, 
+								2 * this.setting_minblocksize, 
+								2 * this.setting_minblocksize );	
+
+					
+				}
 			}	
 		}
 
@@ -648,7 +714,7 @@ function Dogewarrior() {
 				var upgraded_size = basesize + ( bullet.power - 1 ) * 3 ;
 
 				this.ctxt.drawImage( this.sprite_dogecoin, 
-										0,
+										bullet.owner * 64,
 										0,
 										64,
 										64,
@@ -715,7 +781,61 @@ function Dogewarrior() {
 		}
 
 
+		// Draw Life and HP UI
+		if ( this.player.life >= 0 ) {
 
+			for ( var i = 0 ; i < this.player.life ; i++ ) {
+
+				this.ctxt.drawImage( this.sprite_mainchar["head"] , 
+								   		0,
+								   		0,
+								   		40,
+								   		40,
+								   	10 + 40 * i ,
+								   	10 ,
+								   	40,
+								   	40 );	
+			}
+
+			var lifebarsize = this.player.hp * 68 / this.setting_hp_per_life  >> 0
+
+			this.ctxt.drawImage( this.sprite_objecttiles, 
+									320,
+									0,
+									80,
+									40,
+								20,
+								50,
+								80,
+								40 );
+
+			this.ctxt.drawImage( this.sprite_objecttiles, 
+										320,
+										40,
+											lifebarsize,
+											20,
+								26,
+								56,
+									lifebarsize,
+									20 );
+
+		}
+
+
+		if ( this.displaytick > 0 ) {
+
+			if ( this.displaytick > 50 ) {
+				this.ctxt.fillStyle = "#ffffff";
+			} else {
+				var hex = this.displaytick * 255 / 50 >> 0;
+				if ( hex.length < 2 ) {
+					hex = "0" + hex;
+				}
+				this.ctxt.fillStyle =  "#" + hex + hex + hex;
+      		}
+      		this.ctxt.fillText( this.displaymsg , this.canvas.width /2 - this.displaymsg.length * 10 / 2, this.canvas.height - 13 );
+			
+		}
 
 
 		// Draw teleport transition effect
@@ -736,6 +856,15 @@ function Dogewarrior() {
       		this.ctxt.strokeStyle = 'black';
       		this.ctxt.stroke();
       		this.ctxt.closePath();
+      	}
+
+      	if ( this.player.life < 0 ) {
+
+      		this.ctxt.fillStyle = "#ffffff";
+      		var msg = "GAME OVER. Press P to restart.";
+			this.ctxt.fillText( msg , this.canvas.width /2 - msg.length * 10 / 2, this.canvas.height/2 - 6 );
+			
+
       	}
 
 
@@ -762,6 +891,16 @@ function Dogewarrior() {
 		this.debug();
 
 	}
+
+
+
+
+
+
+
+
+
+
 
 	//-------------------------------------------------------------------------------------
 	this.on_keyDown = function( evt ) {
@@ -793,8 +932,13 @@ function Dogewarrior() {
 		
 		if ( keyCode >= 37 && keyCode <= 40 ) {
 			this.player.control_direction[ keyCode - 37 ] = 0 ;
-		} 
+		
+		} else if ( keyCode == 80 ) {
 
+			if ( this.player.life < 0 ) {
+				this.reinit_game(); 
+			}
+		}
 
 	}
 
@@ -857,12 +1001,15 @@ function Dogewarrior() {
 			console.log("Loading Completed");
 			this.reinit_game();
 			
-			//setTimeout( function() {
+			//window.requestAnimationFrame( function() {
 			//	dw.on_timer();
-			//}, this.timerinterval );
-			window.requestAnimationFrame( function() {
+			//});
+
+			setTimeout( function() {
 				dw.on_timer();
-			});
+			}, this.timerinterval );
+			
+			
 
 		} else {
 			this.update_loading_screen();
@@ -874,36 +1021,38 @@ function Dogewarrior() {
 
 		var dw = this;
 		
-		var now = Date.now()
-		if ( !this.then  || now - this.then > this.timerinterval ) {
+		
 
+			if ( this.player.death == 0 ) {
 			
-			this.player_falling();
-			this.player_crouch();
-			this.player_inpain();
-			this.player_jump();
-			this.player_walkleft();
-			this.player_walkright();
-			this.player_idle();
+				this.player_falling();
+				this.player_crouch();
+				this.player_inpain();
+				this.player_jump();
+				this.player_walkleft();
+				this.player_walkright();
+				this.player_idle();
+				this.player.framey_head = this.player.direction;
+				this.player.framex_head = 0;
+				if ( this.player.direction == 1 ) {
+					this.player.framex_head = 3;
+				}
+				this.player_fire();
+				this.player_pickup_objects();
+				this.player_collide_with_trigger();
 
-
-
-			this.player.framey_head = this.player.direction;
-			this.player.framex_head = 0;
-			if ( this.player.direction == 1 ) {
-				this.player.framex_head = 3;
+			} else {
+				this.animate_player_death();
 			}
 
-			this.player_fire();
+
 			this.spawn_monsters();
 			this.animate_monsters();
 			this.animate_bullets();
 			this.animate_particles();
 			this.animate_transition();
 			this.animate_foregroundobjects();
-			this.player_pickup_objects();
-			this.player_collide_with_trigger();
-
+			
 			this.camera.x = this.player.x - this.canvas.width / 2  + this.player.width / 2 ;
 			
 			var camera_target_y = this.player.y - this.canvas.height / 2 + this.player.height / 2 ;
@@ -912,17 +1061,37 @@ function Dogewarrior() {
 
 			this.player.tick += 1;
 			this.player.tick2 += 1;
+			
+			if ( this.displaytick > 0 ) {
+				this.displaytick -= 1;
+			}
+
+
+			if ( this.particle_queue.length > 0 ) {
+
+				this.particle_queue_tick += 1;
+				if ( this.particle_queue_tick > 1 ) {
+
+					var p = this.particle_queue.shift()
+					this.fireparticle( p[0] , p[1] , p[2] , p[3], p[4] , p[5] , p[6] ) ;
+					
+					
+
+					this.particle_queue_tick = 0;	
+				}
+			}
 
 			this.on_draw();
 
-			this.then = now;
-		}
-
+		
 
 		
-		window.requestAnimationFrame( function() {
+		//window.requestAnimationFrame( function() {
+		//	dw.on_timer();
+		//});
+		setTimeout( function() {
 			dw.on_timer();
-		});
+		}, this.timerinterval );
 
 			
 			
@@ -964,22 +1133,39 @@ function Dogewarrior() {
 
 				if ( bullet.active  ) {
 					
-					var monster_index = this.bullet_collide_with_monster( bullet );
-					if ( monster_index > -1 ) {
+					if ( bullet.owner == 0 ) {
+						var monster_index = this.bullet_collide_with_monster( bullet );
+						if ( monster_index > -1 ) {
 
-						var monster = this.monsters[ monster_index ];
+							var monster = this.monsters[ monster_index ];
 
-						bullet.active = 0;
-						this.fireparticle( bullet.x, bullet.y , 0 , 1 , 1 , 11 , 1);
-						monster.hp -= bullet.power ;
-						if ( monster.hp <= 0 ) {
-							this.monster_to_die(monster , monster_index);
+							bullet.active = 0;
+							this.fireparticle( bullet.x, bullet.y , 0 , 1 , 1 , 11 , 1);
+							monster.hp -= bullet.power ;
+
+
+							if ( monster.hp <= 0 ) {
+								this.monster_to_die(monster , monster_index);
+							}
+
+						}
+					} else {
+
+						if ( this.bullet_collide_with_player( bullet ) == 1 ) {
+
+							this.fireparticle( bullet.x, bullet.y , 0 , 1 , 1 , 11 , 1);
+							bullet.active = 0;
+							this.sndSadDog.play();
+							this.player_get_hurt( bullet.power );
+
 						}
 
 					} 	
 				}
 			} 
 		}
+
+
 	}
 
 
@@ -989,13 +1175,11 @@ function Dogewarrior() {
 
 
 		// Animate foreground object
-		if ( this.map.layers && this.map.layers[ this.foregroundobjectlayer_id ]["objects"] ) {
+		if ( this.foregroundobjects ) {
 
-			var objects_arr = this.map.layers[ this.foregroundobjectlayer_id ]["objects"];
-
-			for ( var i = 0 ; i < objects_arr.length ; i++ ) {
+			for ( var i = 0 ; i < this.foregroundobjects.length ; i++ ) {
 				
-				object = objects_arr[i];
+				object = this.foregroundobjects[i];
 
 			
 
@@ -1108,6 +1292,16 @@ function Dogewarrior() {
 						}
 					}
 
+					// Fire
+					if ( object.firepower > 0 ) {
+
+						if ( object.tick2 > 100 ) {
+							this.monster_firebullet( object );
+							object.tick2 = 0;
+						}
+						object.tick2 += 1;
+					}
+
 					// anim
 					var anim_interval = this.setting_monster_anim_interval - object.speed;
 					if ( anim_interval < 1 ) {
@@ -1115,6 +1309,7 @@ function Dogewarrior() {
 					}
 
 					if ( object.tick > anim_interval ) {
+						
 						object.tick = 0;
 						if ( object.direction == 0 ) {
 							object.framey = 0;
@@ -1129,8 +1324,6 @@ function Dogewarrior() {
 				} else if ( object.name == "monster_flying" ) {
 
 					// position
-
-
 					if ( object.radius < object.tr ) {
 						object.radius += 1;
 					} else if ( object.radius > object.tr ) {
@@ -1165,11 +1358,113 @@ function Dogewarrior() {
 						object.framex  = ( object.framex + 1 ) % 3;
 						object.tick = 0;
 					}
-				} 
 				
-				if ( this.monster_collide_with_player( object ) ) {
+				} else if ( object.name == "monster_stationary" ) {
 
-					this.monster_to_die( object, i );
+					// Fire
+					if ( object.firepower > 0 ) {
+
+						if ( object.tick2 > 150 ) {
+							this.monster_firebullet( object );
+							object.tick2 = 0;
+						}
+						object.tick2 += 1;
+					}
+
+					// anim
+					if ( object.tick > this.setting_monster_anim_interval * 2  ) {
+						
+						object.framex  = ( object.framex + 1 ) % 3;
+						object.tick = 0;
+					}
+
+
+				} else if ( object.name == "monster_boss" ) {
+
+					
+					if ( object.tick2 > object.next_firing_cycle ) {
+						object.firing = 20;
+						object.tick2 = 0;
+						this.monster_firebullet( object );
+						object.next_firing_cycle = this.rand(200);
+					}
+
+
+					object.head_framex = 0;
+					if ( object.firing > 0 ) {
+
+						object.head_framex = 1;
+						object.firing -= 1;
+					} 
+
+
+
+					if ( object.tick > 10 ) {
+						
+						object.tick = 0;
+
+
+
+
+						if ( object.direction == 0 ) {
+							object.x -= 10;
+							object.framey = 0;
+							object.head_framey = 0;
+							object.head_offx = 0;
+
+							object.framex =( object.framex + 1) % 8 ;
+							var head_offy_arr = [ 8 ,5 ,0 , 5, 8,  5,  0,  5 ];
+							object.head_offy = head_offy_arr[ object.framex ];
+
+							if ( object.x <= object.min_x * this.setting_minblocksize ) {
+								object.direction = 2;
+							}
+
+							if ( object.framex == 0 || object.framex == 4 ) {
+								this.sndGiantWalk.play();
+							}
+
+						} else {
+							object.x += 10;
+							object.framey = 1;
+							object.head_framey = 1;
+							object.head_offx = -4;
+							
+							object.framex =( object.framex + 7) % 8 ;
+							var head_offy_arr = [ 5 ,0 ,5 , 8, 5,  0,  5,  8 ];
+							object.head_offy = head_offy_arr[ object.framex ];
+
+						
+							if ( object.x >= object.max_x * this.setting_minblocksize ) {
+								object.direction = 0;
+							}
+
+							if ( object.framex == 3 || object.framex == 7 ) {
+								this.sndGiantWalk.play();
+							}
+
+						}
+						
+
+					}
+
+					object.tick += 1;
+					object.tick2 += 1;
+				}
+
+				
+				if ( this.player.death == 0 && this.monster_collide_with_player( object ) ) {
+
+					this.player_get_hurt( object.hp );
+						
+					if ( object.name == "monster_boss" ) {
+
+					} else {
+						
+						this.monster_to_die( object, i );
+
+					}
+
 				} 
 
 				
@@ -1178,6 +1473,84 @@ function Dogewarrior() {
 		}
 	}
 
+
+	//---------------------------
+	this.animate_player_death = function() {
+
+		if ( this.player.death > 0 && this.player.life >= 0 ) {
+
+			this.player.death -= 1;
+			
+			if ( this.player.death == 47 ) {
+				this.fireparticle( this.player.x + 60 , this.player.y + 30 , 6 , 3, 3 , 7 , 5 ) ;
+				this.sndBoom.play();
+
+			
+			}
+			if ( this.player.death == 42 ) {
+				this.fireparticle( this.player.x + 60 , this.player.y + 60 , 6 , 3, 3 , 7 , 5 ) ;
+				this.sndBoom2.play();
+				
+			
+			}
+			if ( this.player.death == 36) {
+				this.fireparticle( this.player.x + 30 , this.player.y + 90 , 6 , 3, 3 , 7 , 3 ) ;
+				this.fireparticle( this.player.x + 80 , this.player.y + 30 , 6 , 3, 3 , 7 , 4 ) ;
+				this.sndBoom.play();
+				
+			}
+
+			if ( this.player.death == 36) {
+				this.fireparticle( this.player.x + 10 , this.player.y +  20 , 6 , 3, 3 , 7 , 3 ) ;
+				this.fireparticle( this.player.x + 100 , this.player.y + 100 , 6 , 3, 3 , 7 , 4 ) ;
+				this.fireparticle( this.player.x + 140 , this.player.y + 60 , 6 , 3, 3 , 7 , 4 ) ;
+				this.sndBoom2.play();
+						
+			}
+
+
+			if ( this.player.death == 20 ) {
+				this.teleporting = 20;
+			}
+
+			if ( this.player.death == 10 ) {
+
+
+				this.player.x = this.player.restart_x;
+				this.player.y = this.player.restart_y;
+				this.player.falling = false;
+				this.player.crouching = false;
+				this.player.upwardspeed = 0 ;
+				this.player.in_pain = 0;
+				this.fireparticle( this.player.x + 60  , this.player.y + 60 , 2 , 2 , 2 , 6 , 4 );
+				this.sndRespawn.play();
+
+				this.player.life -= 1;
+
+				if ( this.player.life < 0 ) {
+					this.sndGameover.play();
+				} else {
+					this.player.hp = this.setting_hp_per_life;
+				}	
+			}	
+
+		}
+	}
+
+	//-------------------------------------
+	this.player_get_hurt = function( hurtpoint ) {
+
+		this.player.hp -= hurtpoint;
+		if ( this.player.hp < 0 ) {
+			this.player.hp = 0;
+		}
+		if ( this.player.hp <= 0 ) {
+			
+			
+			this.player.death = 48;
+			
+		}
+	}
 
 
 	//-----
@@ -1206,7 +1579,7 @@ function Dogewarrior() {
 	this.animate_transition = function() {
 
 		// Animate transition
-		if ( this.teleporting > 0 ) {
+		if ( this.teleporting > 0 && this.player.life >= 0 ) {
 			
 			this.teleporting -= 1;
 			if ( this.teleporting == 10 && this.teleport_target ) {
@@ -1304,19 +1677,66 @@ function Dogewarrior() {
 	//--------
 	this.bullet_collide_with_monster = function( bullet ) {
 
+
 		for ( var m = this.monsters.length - 1 ; m >= 0 ; m-- ) {
 
 			var monster = this.monsters[m];
 
-			var diffx = monster.x + 40 - bullet.x;
-			var diffy = monster.y + 40 - bullet.y;
+			if ( monster.name == "monster_boss" ) {
 
-			if ( diffx * diffx + diffy * diffy < 40 * 40 ) {
-				return m;
+				var diffx = monster.x + 40 - bullet.x;
+				var diffy = monster.y + 10 - bullet.y;
+
+				var collided = 0;
+				if ( diffx * diffx + diffy * diffy < 40 * 40 ) {
+					collided = 1;
+				}
+
+				diffy = monster.y + 80 - bullet.y;
+				if ( diffx * diffx + diffy * diffy < 40 * 40 ) {
+					collided = 1;
+				}
+
+				if ( collided == 1 ) {
+					if ( this.player.x < monster.x ) {
+						monster.direction = 0 ;
+					} else {
+						monster.direction = 2 ;
+					} 
+					return m;
+				}
+
+			} else {
+
+				var diffx = monster.x + 40 - bullet.x;
+				var diffy = monster.y + 40 - bullet.y;
+
+				if ( diffx * diffx + diffy * diffy < 40 * 40 ) {
+					return m;
+				}
 			} 
 
 		}
 		return -1;
+	}
+
+	//----------
+	this.bullet_collide_with_player = function( bullet ) {
+
+		var diffx = this.player.x + 60 - bullet.x ;
+		var diffy = this.player.y + 30 + ( this.player.crouching ? 30:0 ) - bullet.y ;
+
+		if ( diffx * diffx + diffy * diffy < 20 * 20 ) {
+			return 1;
+		}
+
+		diffx = this.player.x + 60 - bullet.x ;
+		diffy = this.player.y + 60 + ( this.player.crouching ? 30:0 ) - bullet.y ;
+		
+		if ( diffx * diffx + diffy * diffy < 40 * 40 ) {
+			return 1;
+		}
+		return 0;
 	}
 
 
@@ -1365,9 +1785,20 @@ function Dogewarrior() {
 					return 0;
 				}
 			}
+			this.showmsg("The door is locked. You need the correct key to unlock it.");
+
 			return -1;
 		}
 		return 0;	
+	}
+
+
+
+	//-------------
+	this.showmsg = function( msg ) {
+		this.displaytick = 200;
+		this.displaymsg  = msg;
+			
 	}
 
 
@@ -1377,45 +1808,7 @@ function Dogewarrior() {
 
 		
 
-		//this.ctxt.strokeStyle = '#ff0000';
-		//this.ctxt.font = "20px Comic Sans MS";
-		//this.ctxt.fillText( this.player.terminalvelocity_length , 200 , 200 );
-		/*
-		if ( this.monsters.length > 0 ) {
-			this.ctxt.beginPath();
-			this.ctxt.rect( 
-							this.monsters[0].x - this.camera.x , 
-							this.monsters[0].y - this.camera.y , 
-							2, 2);
-			this.ctxt.fillStyle = 'green';
-			this.ctxt.fill();
-			this.ctxt.closePath();
-		}	
-
-		for ( i = 0 ; i < this.setting_maxbullet ; i++ ) {
-
-			if ( this.player.bullets[i].active ) {
-				this.ctxt.beginPath();
-				this.ctxt.rect( 
-							this.player.bullets[i].x - this.camera.x , 
-							this.player.bullets[i].y - this.camera.y , 
-							4, 4);
-				this.ctxt.fillStyle = 'red';
-				this.ctxt.fill();
-				this.ctxt.closePath();
-			}
-		}	
-		// */
-		/*
-		this.ctxt.beginPath();
-		this.ctxt.rect( 
-			this.canvas.width - 84 ,
-			this.canvas.height - 84, 
-							80, 80);
-		this.ctxt.fillStyle = 'red';
-		this.ctxt.fill();
-		this.ctxt.closePath();
-		*/
+		
 	}
 
 
@@ -1423,12 +1816,12 @@ function Dogewarrior() {
 	//---------------
 	this.doaction = function() {
 
-		var bg_objects_arr 	= this.map.layers[ this.backgroundobjectlayer_id  ]["objects"];
-		var fg_objects_arr 	= this.map.layers[ this.foregroundobjectlayer_id  ]["objects"];
+		var bg_objects_arr 	= this.backgroundobjects;
+		var fg_objects_arr 	= this.foregroundobjects;
 
 
 		// Teleport via door 
-		if ( this.map.layers && this.map.layers[ this.backgroundobjectlayer_id ]["objects"] ) {
+		if ( this.backgroundobjects ) {
 
 			
 			for ( var i = 0 ; i < bg_objects_arr.length ; i++ ) {
@@ -1559,51 +1952,7 @@ function Dogewarrior() {
 
 
 
-	//----------------------------------
-	this.firebullet = function() {
-
-		var firepower;
-		if ( Math.random() > 0.9 ) {
-			this.sndWow.play();
-			firepower = 5;
-			
-		} else {
-			this.sndBark.play();
-			firepower = this.player.coinpower;
-
-		}
-
-		var bullet 	= this.player.bullets[ this.player.bulletindex];
-		var firepoint_x, firepoint_y;
-
-		if ( this.player.direction == 0 ) {
-			firepoint_x 	= this.player.x + this.player.width / 2 - 2;
-		} else {	
-			firepoint_x 	= this.player.x + this.player.width / 2 + 2;
-		}
-		
-		if ( this.player.crouching ) {
-			firepoint_y 	= this.player.y + 70;
-		} else {
-			firepoint_y 	= this.player.y + 40;
-		}
-
-
-		// Multi shot
-		for  ( var i = 0 ; i < this.player.coincount ; i++ ) {
-
-			bullet 			= this.player.bullets[ this.player.bulletindex];
-			bullet.x  		= firepoint_x ;
-			bullet.y  		= firepoint_y ;
-			bullet.power 	= firepower;
-			bullet.vy 		= this.setting_bullet_vy - 5 * i;
-			bullet.vx  		= this.player.direction * this.setting_bullet_vx * 2  - this.setting_bullet_vx ;
-			bullet.active 	= true;
-			this.player.bulletindex = (this.player.bulletindex  + 1) % this.setting_maxbullet ;
-		}
-
-	}	
-
+	
 	//----------
 	this.fireparticle = function( x , y , type , size_x , size_y , active , interval ) {
 
@@ -1626,13 +1975,46 @@ function Dogewarrior() {
 	//---------------------------
 	this.monster_to_die = function( monster , index ) {
 
-		this.fireparticle( monster.x + 40  , monster.y + 40 , 4 , 2 , 2 , 7 , 4 );
-		
-		if ( this.sndSplash.paused ) {
-			this.sndSplash.play();
+		if ( monster.name == "monster_boss" ) {
+
+			for ( i = 0 ; i < 10 ; i++ ) {
+				
+				this.fireparticle( monster.x + this.rand(100)  , monster.y - 40 + i * 20 , 4 , 2 , 2 , 7 , 4 );
+				this.fireparticle( monster.x + this.rand(100)  , monster.y - 40 + i * 20 , 4 , 2 , 2 , 7 , 4 );
+			}
+			for ( i = 0 ; i < 10 ; i++ ) {
+				
+				this.particle_queue.push( [ monster.x - 20 + this.rand(100) , monster.y - 40 + i * 20, 6,  3, 3, 7, 3 ] );
+			}
+					
+
+			this.sndBoom.play();
+			this.sndBoom2.play();
+			// Reward key id 12
+			if ( monster.rewardkeyid ) {
+
+				var key = {};
+				key.name = "key"
+				key.x = monster.x;
+				key.y = monster.y;
+				key.type = 3;
+				key.properties = {}
+				key.properties.id = monster.rewardkeyid;
+				this.pickables.push(key );
+			}	
+
 		} else {
-			this.sndSplash2.play();
+			this.fireparticle( monster.x + 40  , monster.y + 40 , 4 , 2 , 2 , 7 , 4 );
+			
+			if ( this.sndSplash.paused ) {
+				this.sndSplash.play();
+			} else {
+				this.sndSplash2.play();
+			}
+
 		}
+
+		
 		// Clear the monster
 		this.monsters.splice( index , 1 );
 	} 
@@ -1641,41 +2023,148 @@ function Dogewarrior() {
 	//------
 	this.monster_collide_with_player = function( monster ) {
 
-		var diffx = this.player.x + 20 - monster.x ;
-		var diffy = this.player.y + ( this.player.crouching ? 30 : 0) - monster.y  ;
+		if ( monster.name == "monster_boss" ) {
 
-		if ( diffx * diffx + diffy * diffy < 55 * 55 ) {
-			return 1;
+			var diffx = this.player.x + 40 - monster.x ;
+			var diffy = this.player.y - monster.y - 10 ;
+
+			if ( diffx * diffx + diffy * diffy < 55 * 55 ) {
+				return 1;
+			}
+			diffy = this.player.y - monster.y - 80 ;
+			if ( diffx * diffx + diffy * diffy < 55 * 55 ) {
+				return 1;
+			}
+
+
+		} else {
+			var diffx = this.player.x + 20 - monster.x ;
+			var diffy = this.player.y + ( this.player.crouching ? 30 : 0) - monster.y  ;
+
+			if ( diffx * diffx + diffy * diffy < 55 * 55 ) {
+				return 1;
+			}
 		}
 		return 0;
 
 	}
 
+	//---------
+	this.monster_firebullet = function( monster ) {
+
+		var bullet;	
+
+		if ( monster.name == "monster_grounded" ) {
+			
+			bullet 			= this.player.bullets[ this.player.bulletindex ];
+			bullet.x  		= monster.x + 20;
+			if ( monster.direction == 2 ) {
+				bullet.x 	= monster.x + 50;
+			}
+			bullet.y  		= monster.y + 30 ;
+			bullet.vy 		= this.setting_monster_bullet_vy;
+			bullet.vx  		= ( monster.direction - 1 ) * this.setting_bullet_vx ;
+			bullet.owner  	= 1;
+			bullet.power 	= monster.firepower ;
+			bullet.active 	= true;
+			this.player.bulletindex = ( this.player.bulletindex + 1  ) % this.setting_maxbullet ;
+	
+		} else if ( monster.name == "monster_stationary" ) {
+
+			for ( var i = 0 ; i < 2 ; i++ ) {
+				
+				bullet 		= this.player.bullets[ this.player.bulletindex ];
+				bullet.x 	= monster.x + 40;
+				bullet.y 	= monster.y + 74;
+				bullet.vy 	= 0.1;
+				bullet.vx 	= ( i * 2 - 1 ) * 2;
+				bullet.owner  	= 1;
+				bullet.power 	= monster.firepower ;
+				bullet.active 	= true;
+				this.player.bulletindex = ( this.player.bulletindex + 1  ) % this.setting_maxbullet ;
+
+	
+			}
+		
+		} else if ( monster.name == "monster_boss" ) {
+
+			var mode = this.rand(3);
+
+			this.sndMonsterFire.play();
+
+			if ( mode == 0 ) {
+
+				for ( var i = 0 ; i < 2 ; i++ ) {
+					bullet 		= this.player.bullets[ this.player.bulletindex ];
+					bullet.x 	= monster.x + 30;
+					bullet.y 	= monster.y + 9;
+					bullet.vy 	=  -5 * i;
+					bullet.vx 	= ( monster.direction - 1 ) * this.setting_bullet_vx ;
+					bullet.owner  	= 1;
+					bullet.power 	= monster.firepower1 ;
+					bullet.active 	= true;
+					this.player.bulletindex = ( this.player.bulletindex + 1  ) % this.setting_maxbullet ;
+				}
+
+			
+			} else {
+
+				var vyrange = 5;
+				if ( mode == 1 ) {
+					vyrange = this.rand(10);
+				}
+				for ( var i = 0 ; i < 5 ; i++ ) {
+					
+					bullet 		= this.player.bullets[ this.player.bulletindex ];
+					bullet.x 	= monster.x + 30;
+					bullet.y 	= monster.y + 9;
+					bullet.vy 	=  this.setting_monster_boss_bullet_vy - i * vyrange ;
+					bullet.vx 	= ( monster.direction - 1 ) * this.setting_bullet_vx ;
+					bullet.owner  	= 1;
+					bullet.power 	= monster.firepower0 ;
+					bullet.active 	= true;
+					this.player.bulletindex = ( this.player.bulletindex + 1  ) % this.setting_maxbullet ;
+
+				}
+			}
+		}
+
+
+		
+	}
 
 
 	//------------
 	this.player_collide_with_trigger = function( ) {
 
-		if ( this.map.layers && this.map.layers[ this.triggerlayer_id ]["objects"] ) {
+		if ( this.triggers ) {
 
-			var objects_arr = this.map.layers[ this.triggerlayer_id ]["objects"];
+			for ( var i = this.triggers.length - 1 ; i >= 0 ; i-- ) {
 
-			for ( var i = objects_arr.length - 1 ; i >= 0 ; i-- ) {
+				object = this.triggers[i];
 
-				object = objects_arr[i];
 				if ( this.player.x >= object.x && this.player.x <= object.x + object.width && 
 					 this.player.y >= object.y && this.player.y <= object.y + object.height ) {
 
-					var spawner_arr 	= this.map.layers[ this.monsterobjectlayer_id  ]["objects"];
-					for ( var j = 0 ; j < spawner_arr.length ; j++ ) {
+					if ( object.name == "trigger" ) {
+				
+						for ( var j = 0 ; j < this.spawners.length ; j++ ) {
 
-						if ( parseInt( spawner_arr[j].properties.triggerid ) == parseInt( object.properties.id ) ) {
-							spawner_arr[j].properties.triggerid = 0;
+							if ( parseInt( this.spawners[j].properties.triggerid ) == parseInt( object.properties.id ) ) {
+								this.spawners[j].properties.triggerid = 0;
+							}
 						}
+					
+					} else if ( object.name == "restart" ) {
+
+						this.player.restart_x = object.x ;
+						this.player.restart_y = object.y ;
+
 					}
+						
 
 					// Done with trigger. delete it.
-					objects_arr.splice( i , 1 );
+					this.triggers.splice( i , 1 );
 				}	
 			}	
 
@@ -1753,13 +2242,10 @@ function Dogewarrior() {
 				}
 
 				// Background objects
-				var bg_objects_arr = this.map.layers[ this.backgroundobjectlayer_id ]["objects"];
-
-
-
+				var bg_objects_arr = this.backgroundobjects;
 
 				// Foreground objects
-				var objects_arr = this.map.layers[ this.foregroundobjectlayer_id ]["objects"];
+				var objects_arr = this.foregroundobjects;
 
 				for ( var i = 0 ; i < objects_arr.length ; i++ ) {
 					
@@ -1852,6 +2338,8 @@ function Dogewarrior() {
 
 					if ( this.player.terminalvelocity_length > 5 ) {
 						this.player.in_pain = 50;
+						this.player_get_hurt( this.setting_fallinjury );
+
 						this.sndSadDog.play();
 						this.sndBreakBone.play();
 
@@ -1956,7 +2444,7 @@ function Dogewarrior() {
 			if ( this.player.tick2 > 4 ) { 
 				this.player.firing += 1;
 				if ( this.player.firing >= 4 ) {
-					this.firebullet();
+					this.player_firebullet();
 					this.player.firing = 0;
 				}
 
@@ -1965,7 +2453,55 @@ function Dogewarrior() {
 		}
 	}
 
+	//----------------------------------
+	this.player_firebullet = function() {
 
+		var firepower;
+		if ( Math.random() > 0.9 ) {
+			this.sndWow.play();
+			firepower = 5;
+			
+		} else {
+			this.sndBark.play();
+			firepower = this.player.coinpower;
+
+		}
+
+		var bullet 	= this.player.bullets[ this.player.bulletindex];
+		var firepoint_x, firepoint_y;
+
+		if ( this.player.direction == 0 ) {
+			firepoint_x 	= this.player.x + this.player.width / 2 - 2;
+		} else {	
+			firepoint_x 	= this.player.x + this.player.width / 2 + 2;
+		}
+		
+		if ( this.player.crouching ) {
+			firepoint_y 	= this.player.y + 70;
+		} else {
+			firepoint_y 	= this.player.y + 40;
+		}
+
+
+		// Multi shot
+		for  ( var i = 0 ; i < this.player.coincount ; i++ ) {
+
+			bullet 			= this.player.bullets[ this.player.bulletindex];
+			bullet.x  		= firepoint_x ;
+			bullet.y  		= firepoint_y ;
+			bullet.power 	= firepower;
+			bullet.owner 	= 0;
+			bullet.vy 		= this.setting_bullet_vy - 5 * i;
+			bullet.vx  		= this.player.direction * this.setting_bullet_vx * 2  - this.setting_bullet_vx ;
+			bullet.active 	= true;
+			this.player.bulletindex = (this.player.bulletindex  + 1) % this.setting_maxbullet ;
+		}
+
+	}	
+
+
+
+	
 
 
 	//----
@@ -2011,6 +2547,7 @@ function Dogewarrior() {
 	}
 
 
+	
 
 	//-------
 	this.player_inpain = function() {
@@ -2061,12 +2598,11 @@ function Dogewarrior() {
 	this.player_pickup_objects = function() {
 
 		// Player pickup
-		if ( this.map.layers && this.map.layers[ this.pickableobjectlayer_id ]["objects"] ) {
+		if ( this.pickables ) {
 
-			var objects_arr = this.map.layers[ this.pickableobjectlayer_id ]["objects"];
-			for ( var i = objects_arr.length - 1 ; i >= 0 ; i-- ) {
+			for ( var i = this.pickables.length - 1 ; i >= 0 ; i-- ) {
 				
-				object = objects_arr[i];
+				object = this.pickables[i];
 				var diffx = ( object.x + this.setting_minblocksize / 2 ) - ( this.player.x + this.player.width / 2 );
 				var diffy = ( object.y + this.setting_minblocksize / 2 ) - ( this.player.y + this.player.height / 2 ) ;
 
@@ -2086,10 +2622,15 @@ function Dogewarrior() {
 						if ( this.player.coinpower < 10 ) {
 							this.player.coinpower += 1;
 						}
+					
+					} else if ( object.name == "hint" ) {
+
+						this.showmsg( object.properties.hint );
+
 					} 
 
 
-					objects_arr.splice( i , 1 );
+					this.pickables.splice( i , 1 );
 					this.sndPickup.play();
 					this.fireparticle( object.x + 10 , object.y + 10 , 1 , 1 , 1 , 7 ,  1 );
 					
@@ -2207,11 +2748,37 @@ function Dogewarrior() {
 
 
 
+
 	//------
 	this.rand = function( x ) {
 
 		return Math.random() * x >> 0;
 
+	}
+
+
+	//----------------------------
+	this.clone = function(obj) {
+
+	    if(obj == null || typeof(obj) != 'object')
+	        return obj;
+
+	    var temp = {};// changed
+
+	    for(var key in obj) {
+	        if(obj.hasOwnProperty(key)) {
+	            
+	            if ( key == "properties" ) {
+	            	temp[key] = {}
+	            	for ( var property in obj[key] ) {
+	            		temp[key][property] = obj[key][property];
+	            	}
+	            } else {
+	            	temp[key] = obj[key];
+	        	}
+	        }
+	    }
+	    return temp;
 	}
 
 
@@ -2221,39 +2788,13 @@ function Dogewarrior() {
 		this.player.x = 500;
 		this.player.y = 3640;
 
+		//this.player.x = 181 * 40;
+		//this.player.y = 32 * 40;
 
-		//this.player.x = 32 * 40;
-		//this.player.y = 91 * 40;
-
-		// World 1.5
-		//this.player.x = 101 * 40;
-		//this.player.y = 176 * 40;
-
-		
-		// World 2 Start
-		//this.player.x = 44 * 40;
-		//this.player.y = 61 * 40;
-		
-		//this.player.x = 18 * 40;
-		//this.player.y = 134 * 40;
-
-		// World 3 
-		//this.player.x = 121 * 40;
-		//this.player.y = 144 * 40;
-
-		// World 2.5
-		//this.player.x = 86 * 40;
-		//this.player.y = 145 * 40;
-
-		// switch room
-		//this.player.x = 185 * 40;
-		//this.player.y = 93 * 40;
-
-		// World 3 begin
-		//this.player.x = 104 * 40;
-		//this.player.y = 176 * 40;
-
-		
+	
+		this.player.restart_x = this.player.x;
+		this.player.restart_y = this.player.y;
+		this.player.death = 0;
 		this.player.framex = 0;
 		this.player.framey = 0;
 		this.player.tick = 0;
@@ -2263,6 +2804,9 @@ function Dogewarrior() {
 		this.player.crouching = false;
 		this.player.walking = false;
 		this.player.upwardspeed = 0.0;
+
+		this.player.hp 		= this.setting_hp_per_life;
+		this.player.life 	= this.setting_initial_life_count;	
 
 		this.camera.x = 0;
 		this.camera.y = 3400;	
@@ -2281,6 +2825,8 @@ function Dogewarrior() {
 		this.teleporting = 0;
 		this.player.inventory = [];
 		this.player.bulletindex = 0;
+
+		
 		
 		for ( var i = 0 ; i < this.setting_maxbullet ; i++ ) {
 			this.player.bullets[i].active = false;
@@ -2289,9 +2835,37 @@ function Dogewarrior() {
 			this.particles[i].active = false;
 		}
 
+		// Make a copy of all expendable items
+		this.triggers  = [];
+		for ( var i = 0 ; i <  this.map.layers[this.triggerlayer_id]["objects"].length ; i++ ) {
+			this.triggers.push( this.clone( this.map.layers[this.triggerlayer_id]["objects"][i] ) );
+		}
 
+		this.spawners = [];
+		for ( var i = 0 ; i <  this.map.layers[this.monsterobjectlayer_id]["objects"].length ; i++ ) {
+			this.spawners.push( this.clone( this.map.layers[this.monsterobjectlayer_id]["objects"][i] ));
+		}
+
+		this.pickables = [];
+		for ( var i = 0 ; i <  this.map.layers[this.pickableobjectlayer_id]["objects"].length ; i++ ) {
+			this.pickables.push( this.clone( this.map.layers[this.pickableobjectlayer_id]["objects"][i] ));
+		}
+
+		this.foregroundobjects = [];
+		for ( var i = 0 ; i <  this.map.layers[this.foregroundobjectlayer_id]["objects"].length ; i++ ) {
+			this.foregroundobjects.push( this.clone( this.map.layers[this.foregroundobjectlayer_id]["objects"][i] ));
+		}
+
+		this.backgroundobjects = [];
+		for ( var i = 0 ; i <  this.map.layers[this.backgroundobjectlayer_id]["objects"].length ; i++ ) {
+			this.backgroundobjects.push( this.clone( this.map.layers[this.backgroundobjectlayer_id]["objects"][i] ));
+		}
 		this.monsters = [];
+		this.particle_queue = [];
+		this.particle_queue_tick = 0;
 
+		this.displaymsg = "";
+		this.displaytick = 0;
 	}	
 
 
@@ -2299,13 +2873,11 @@ function Dogewarrior() {
 	this.spawn_monsters = function() {
 
 		// Monster spawner
-		if ( this.map.layers && this.map.layers[ this.monsterobjectlayer_id ]["objects"] ) {
+		if ( this.spawners ) {
 
-			var objects_arr = this.map.layers[ this.monsterobjectlayer_id ]["objects"];
-
-			for ( var i = objects_arr.length - 1  ; i >= 0 ; i-- ) {
+			for ( var i = this.spawners.length - 1  ; i >= 0 ; i-- ) {
 				
-				var object = objects_arr[i];
+				var object = this.spawners[i];
 
 				if  ( !(parseInt( object.properties.triggerid ) > 0 ) ) {
 					
@@ -2331,12 +2903,19 @@ function Dogewarrior() {
 								direction:parseInt(object.properties.direction), 
 								hp:parseInt(object.properties.hp),
 								tick:0,
+								tick2: this.rand(80),
 							};
 
 							if ( object.properties.speed ) {
 								monster.speed = parseInt( object.properties.speed );
 							} else {
 								monster.speed = 1;
+							}
+
+							if ( object.properties.firepower ) {
+								monster.firepower = parseInt( object.properties.firepower );
+							} else {
+								monster.firepower = 0;
 							}
 
 							monster.framex = 0;
@@ -2353,6 +2932,27 @@ function Dogewarrior() {
 								monster.cx = object.x ;
 								monster.cy = object.y ;
 								monster.theta = 0;
+							} else if ( monster.name == "monster_stationary" ) {
+
+								monster.framey = 4;
+								
+							} else if ( monster.name == "monster_boss" ) {
+
+								monster.framex = 0;
+								monster.framey = 0;
+								monster.head_framex = 0;
+								monster.head_framey = 0;
+								monster.head_offy = 0;
+								monster.head_offx = 0;
+								monster.tick = 0;
+								monster.tick2 = 0;
+								monster.firing = 0;
+								monster.min_x  = parseInt(object.properties.min_x);
+								monster.max_x  = parseInt(object.properties.max_x);
+								monster.next_firing_cycle = this.rand(200);
+								monster.firepower0 = parseInt(object.properties.firepower0);
+								monster.firepower1 = parseInt( object.properties.firepower1);
+								monster.rewardkeyid = parseInt( object.properties.rewardkeyid );
 							}
 
 
@@ -2360,7 +2960,7 @@ function Dogewarrior() {
 							
 							if ( object.properties.spawncount == 0 ) {
 								//Delete spawner when spawn count reaches 0
-								objects_arr.splice( i , 1 );
+								this.spawners.splice( i , 1 );
 							}	
 							object.tospawn_interval = 0;
 						}
@@ -2372,6 +2972,8 @@ function Dogewarrior() {
 							this.fireparticle( object.x + 20  , object.y + 40 , 2 , 2 , 2 , 6 , 4 );
 							object.tospawn_interval = 12;
 							object.properties.spawncount = spawncount - 1;
+
+
 							
 						}
 					}
