@@ -67,16 +67,22 @@ function Dogewarrior() {
 	//--------------------------------------
 	this.resizewindow = function() {
 
-		
+		if ( this.fixedat800x600 ) {
+
+			this.canvas.width = 800 ;
+	    	this.canvas.height = 600 ;
+	    	
+
+		} else {
     	
-    	this.canvas.width = window.innerWidth ;
-    	this.canvas.height = window.innerHeight ;
-    	
-    	if ( this.canvas.width > 1200 ) {
-    		this.canvas.width = 1200;
-    		this.canvas.height = 600;
+	    	this.canvas.width = window.innerWidth ;
+	    	this.canvas.height = window.innerHeight ;
+	    	
+	    	if ( this.canvas.width > 1200 ) {
+	    		this.canvas.width = 1200;
+	    		this.canvas.height = 600;
+			}
 		}
-		
 
     	if ( this.ismobile == 1 ) {
     	
@@ -94,7 +100,7 @@ function Dogewarrior() {
 		var dw = this;
 		if (window.top !== window.self) {
 			if ( /kongregate/i.test( window.location.href ) ) {
-
+				this.fixedat800x600 = true;
 			} else {
 				window.top.location.replace(window.self.location.href);
 			}
