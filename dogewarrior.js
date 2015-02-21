@@ -93,8 +93,15 @@ function Dogewarrior() {
 		
 		var dw = this;
 		if (window.top !== window.self) {
-			window.top.location.replace(window.self.location.href);
+			if ( /kongregate/i.test( window.location.href ) ) {
+
+			} else {
+				window.top.location.replace(window.self.location.href);
+			}
 		}
+
+
+		
 		
 		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
 		 	this.ismobile = 1;
