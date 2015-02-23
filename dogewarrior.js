@@ -845,7 +845,7 @@ function Dogewarrior() {
 			if ( this.displaytick > 100 ) {
 				alpha = 1.0;
 			} else {
-				alpha = ( this.displaytick / 50 ).toFixed(2);
+				alpha = ( this.displaytick / 100 ).toFixed(2);
 			}
 			this.ctxt.fillStyle =  "rgba( 255 , 255 ,255, " + alpha +")";
       		this.ctxt.fillText( this.displaymsg , this.canvas.width /2 - this.displaymsg.length * 10 / 2, this.canvas.height - 13 );
