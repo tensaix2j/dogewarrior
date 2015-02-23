@@ -841,15 +841,13 @@ function Dogewarrior() {
 
 		if ( this.displaytick > 0 ) {
 
-			if ( this.displaytick > 50 ) {
-				this.ctxt.fillStyle = "#ffffff";
+			var alpha;
+			if ( this.displaytick > 100 ) {
+				alpha = 1.0;
 			} else {
-				var hex = this.displaytick * 255 / 50 >> 0;
-				if ( hex.length < 2 ) {
-					hex = "0" + hex;
-				}
-				this.ctxt.fillStyle =  "#" + hex + hex + hex;
-      		}
+				alpha = ( this.displaytick / 50 ).toFixed(2);
+			}
+			this.ctxt.fillStyle =  "rgba( 255 , 255 ,255, " + alpha +")";
       		this.ctxt.fillText( this.displaymsg , this.canvas.width /2 - this.displaymsg.length * 10 / 2, this.canvas.height - 13 );
 			
 		}
