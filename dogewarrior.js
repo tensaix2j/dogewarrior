@@ -2805,8 +2805,8 @@ function Dogewarrior() {
 		this.player.x = 500;
 		this.player.y = 3640;
 
-		//this.player.x = 181 * 40;
-		//this.player.y = 32 * 40;
+		//this.player.x = 108 * 40;
+		//this.player.y = 111 * 40;
 
 	
 		this.player.restart_x = this.player.x;
