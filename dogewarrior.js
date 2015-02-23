@@ -67,9 +67,9 @@ function Dogewarrior() {
 	//--------------------------------------
 	this.resizewindow = function() {
 
-		if ( this.fixedat800x600 ) {
+		if ( this.fixedsize ) {
 
-			this.canvas.width = 800 ;
+			this.canvas.width  = 1024 ;
 	    	this.canvas.height = 600 ;
 	    	
 
@@ -100,7 +100,7 @@ function Dogewarrior() {
 		var dw = this;
 		if (window.top !== window.self) {
 			if ( /kongregate/i.test( window.location.href ) ) {
-				this.fixedat800x600 = true;
+				this.fixedsize = true;
 			} else {
 				window.top.location.replace(window.self.location.href);
 			}
