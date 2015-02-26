@@ -198,6 +198,7 @@ function Dogewarrior() {
 		this.sndSadDog     = new Audio("sounds/saddog.wav");
 		this.sndTeleport   = new Audio("sounds/teleport.wav");
 		this.sndBark 	   = new Audio("sounds/bark.wav");
+		this.sndMariofire  = new Audio("sounds/mariofire.wav");
 		this.sndSwitch     = new Audio("sounds/switch.wav");
 		this.sndOpendoor   = new Audio("sounds/opendoor.wav");
 		this.sndClosedoor  = new Audio("sounds/closedoor.wav");
@@ -2477,7 +2478,7 @@ function Dogewarrior() {
 			firepower = 5;
 			
 		} else {
-			this.sndBark.play();
+			this.sndMariofire.play();
 			firepower = this.player.coinpower;
 
 		}
