@@ -1,54 +1,161 @@
-<!doctype html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-	  <title>Doge Warrior!</title>
-	   
-	 	<link rel="stylesheet" href="dogewarrior.css?">
-	 	<link rel="icon" type="image/png" href="images/icon_32.png"></link> 
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		 <title>Doge Warrior!</title>
 
-		<script src="dogewarrior.js?"></script>
+		 <meta name="keywords" content="sales qoo10 singapore US free food cake dogfood" />
 
-		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-		<meta content="utf-8" http-equiv="encoding">
-
-		<meta name="viewport" content="initial-scale=0.75, user-scalable=0" />
-		<meta name="mobile-web-app-capable" content="yes">
-
-		<meta name="keywords" content="sales qoo10 singapore US free food cake dogfood" />
-
-    	
-	</head>
-
-
-
-	<body onload='main();'>
 		
-		<div id="main">
-			<canvas id="cv" width="1200px" height="600px"></canvas>
-			
-			<div class="desc">
-					Wow 1.1 <br/>
-					Z = fire, X = use, Arrow keys = movements.
 
-			</div>
-
-			<!-- Adsense -->
-			<div class="adsense">
+		<script type='text/javascript' src='https://ssl-webplayer.unity3d.com/download_webplayer-3.x/3.0/uo/jquery.min.js'></script>
+		<script type="text/javascript">
+		<!--
+		var unityObjectUrl = "http://webplayer.unity3d.com/download_webplayer-3.x/3.0/uo/UnityObject2.js";
+		if (document.location.protocol == 'https:')
+			unityObjectUrl = unityObjectUrl.replace("http://", "https://ssl-");
+		document.write('<script type="text\/javascript" src="' + unityObjectUrl + '"><\/script>');
+		-->
+		</script>
+		<script type="text/javascript">
+		<!--
+			var config = {
+				width: 1024, 
+				height: 600,
+				params: { enableDebugging:"0" }
 				
-				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-				<!-- Doge Warrior 320x100 -->
-				<ins class="adsbygoogle"
-				     style="display:inline-block;width:320px;height:100px"
-				     data-ad-client="ca-pub-2203212662801528"
-				     data-ad-slot="7037984724"></ins>
-				<script>
-				(adsbygoogle = window.adsbygoogle || []).push({});
-				</script>
+			};
+			var u = new UnityObject2(config);
 
+			jQuery(function() {
+
+				var $missingScreen = jQuery("#unityPlayer").find(".missing");
+				var $brokenScreen = jQuery("#unityPlayer").find(".broken");
+				$missingScreen.hide();
+				$brokenScreen.hide();
+				
+				u.observeProgress(function (progress) {
+					switch(progress.pluginStatus) {
+						case "broken":
+							$brokenScreen.find("a").click(function (e) {
+								e.stopPropagation();
+								e.preventDefault();
+								u.installPlugin();
+								return false;
+							});
+							$brokenScreen.show();
+						break;
+						case "missing":
+							$missingScreen.find("a").click(function (e) {
+								e.stopPropagation();
+								e.preventDefault();
+								u.installPlugin();
+								return false;
+							});
+							$missingScreen.show();
+						break;
+						case "installed":
+							$missingScreen.remove();
+						break;
+						case "first":
+						break;
+					}
+				});
+				u.initPlugin(jQuery("#unityPlayer")[0], "dogewarrior.unity3d");
+			});
+		-->
+		</script>
+		<style type="text/css">
+		<!--
+		body {
+			font-family: Helvetica, Verdana, Arial, sans-serif;
+			background-color: #251F0B;
+
+			color: white;
+			text-align: center;
+		}
+		a:link, a:visited {
+			color: white;
+		}
+		a:active, a:hover {
+			color: #666;
+		}
+		p.header {
+			font-size: small;
+		}
+		p.header span {
+			font-weight: bold;
+		}
+		div.footer {
+			font-size: x-small;
+			margin-top: 20px;
+		}
+		div.content {
+			margin: auto;
+			width: 1024px;
+		}
+		div.broken,
+		div.missing {
+			margin: auto;
+			position: relative;
+			top: 50%;
+			width: 193px;
+		}
+		div.broken a,
+		div.missing a {
+			height: 63px;
+			position: relative;
+			top: -31px;
+		}
+		div.broken img,
+		div.missing img {
+			border-width: 0px;
+		}
+		div.broken {
+			display: none;
+		}
+		div#unityPlayer {
+			cursor: default;
+			height: 600px;
+			width: 1024px;
+		}
+		-->
+		</style>
+	</head>
+	<body>
+		<div class="content">
+			<div id="unityPlayer">
+				<div class="missing">
+					<a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now!">
+						<img alt="Unity Web Player. Install now!" src="http://webplayer.unity3d.com/installation/getunity.png" width="193" height="63" />
+					</a>
+				</div>
+				<div class="broken">
+					<a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now! Restart your browser after install.">
+						<img alt="Unity Web Player. Install now! Restart your browser after install." src="http://webplayer.unity3d.com/installation/getunityrestart.png" width="193" height="63" />
+					</a>
+				</div>
 			</div>
+		</div>
 
+		<div class="footer">
+				Created with Unity3D 5. Wow 1.0   |   Older version (HTML5) is available <a href="./html5.html">here</a><br/>
+				Z = fire, X = use, Arrow keys = movements.
+		</div>
+		
 
+		<!-- Adsense -->
+		<div class="adsense">
 			
+			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+			<!-- Doge Warrior 320x100 -->
+			<ins class="adsbygoogle"
+			     style="display:inline-block;width:320px;height:100px"
+			     data-ad-client="ca-pub-2203212662801528"
+			     data-ad-slot="7037984724"></ins>
+			<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
 
 		</div>
 
@@ -73,9 +180,7 @@
 			</div>
 		</noscript>
 		<!-- End of StatCounter Code for Default Guide -->
-
-
+		
 
 	</body>
-
 </html>
