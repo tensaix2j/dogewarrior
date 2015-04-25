@@ -14,7 +14,7 @@ function Dogewarrior() {
 
 	
 	this.ctxt;
-	this.timerinterval   		= 20;
+	this.timerinterval   		= 15;
 	this.player 				= {};
 	this.camera 				= {};
 
@@ -839,7 +839,7 @@ function Dogewarrior() {
 
 		}
 
-
+		// Draw message
 		if ( this.displaytick > 0 ) {
 
 			var alpha;
