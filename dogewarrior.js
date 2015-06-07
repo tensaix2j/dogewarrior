@@ -14,7 +14,7 @@ function Dogewarrior() {
 
 	
 	this.ctxt;
-	this.timerinterval   		= 15;
+	this.timerinterval   		= 16;
 	this.player 				= {};
 	this.camera 				= {};
 
@@ -912,7 +912,22 @@ function Dogewarrior() {
 
 
 
+	//--------
+	this.wasd_to_arrow = function( keyCode ) {
 
+		var newKeyCode = keyCode ;
+
+		
+		if ( keyCode == 0x61 - 0x20 ) { newKeyCode = 37; }
+		if ( keyCode == 0x64 - 0x20 ) { newKeyCode = 39; }
+		if ( keyCode == 0x77 - 0x20 ) { newKeyCode = 38; }
+		if ( keyCode == 0x73 - 0x20 ) { newKeyCode = 40; }
+		if ( keyCode == 190 ) { newKeyCode = 90 ; }
+		if ( keyCode == 191 ) { newKeyCode = 88 ; }
+		
+			
+		return newKeyCode;
+	}
 
 
 
@@ -922,10 +937,15 @@ function Dogewarrior() {
 	this.on_keyDown = function( evt ) {
 
 		var keyCode = evt.which?evt.which:evt.keyCode; 
+			
+		keyCode = this.wasd_to_arrow(keyCode);
 		
+
+
 		if ( keyCode >= 37 && keyCode <= 40 ) {
 			this.player.control_direction[ keyCode - 37 ] = 1 ;
-		
+
+
 		} else if ( keyCode == 90 ) {
 
 			if ( this.player.firing == 0  && this.player.in_pain == 0) {
@@ -945,7 +965,9 @@ function Dogewarrior() {
 	this.on_keyUp = function( evt ) {
 
 		var keyCode = evt.which?evt.which:evt.keyCode; 
+		keyCode = this.wasd_to_arrow(keyCode);
 		
+
 		if ( keyCode >= 37 && keyCode <= 40 ) {
 			this.player.control_direction[ keyCode - 37 ] = 0 ;
 		
