@@ -7,6 +7,7 @@
 
 function Dogewarrior() {
 
+	this.version 				= 1.4;
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -61,1083 +62,6 @@ function Dogewarrior() {
 
 
 	
-
-
-
-	//--------------------------------------
-	this.resizewindow = function() {
-
-		if ( this.fixedsize ) {
-
-			this.canvas.width  = 1024 ;
-	    	this.canvas.height = 600 ;
-	    	
-
-		} else {
-    	
-	    	this.canvas.width = window.innerWidth ;
-	    	this.canvas.height = window.innerHeight ;
-	    	
-	    	if ( this.canvas.width > 1200 ) {
-	    		this.canvas.width = 1200;
-	    		this.canvas.height = 600;
-			}
-		}
-
-    	if ( this.ismobile == 1 ) {
-    	
-    		//this.initKeypad();
-    	
-    		
-    	}
-    }
-	
-
-
-	//------------------------------------------------------------------
-	this.init = function() {
-		
-		var dw = this;
-		if (window.top !== window.self) {
-			if ( /kongregate/i.test( window.location.href ) ) {
-				this.fixedsize = true;
-			} else {
-				window.top.location.replace(window.self.location.href);
-			}
-		}
-
-
-		
-		
-		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-		 	this.ismobile = 1;
-		}
-		
-		this.canvas = document.getElementById("cv");
-		this.canvas.style.backgroundColor = "#000000";
-		
-
-		window.addEventListener('resize', function(e) {
-			dw.resizewindow();
-		}, false);
-		this.resizewindow();
-
-		
-
-
-		this.ctxt = this.canvas.getContext('2d');
-		this.player.width 				= 120;
-		this.player.height 				= 120;
-		this.player.control_direction 	= [0,0,0,0];
-		
-		this.player.bullets 			= [];
-		this.player.bulletindex 		= 0;
-
-		this.particles 					= [];
-		this.particleindex 				= 0;
-
-
-		for ( var i = 0 ; i < this.setting_maxbullet ; i++ ) {
-			this.player.bullets[i] = {
-				active: false,
-				x : 0,
-				y : 0,
-				vx: 0,
-				vy: 0	
-			}
-		}
-
-		for ( var i = 0 ; i < this.setting_maxparticle ; i++ ) {
-			this.particles[i] = {
-				active: 0,
-				x : 0,
-				y : 0,
-				framex:0,
-				framey:0
-			}
-		}
-
-
-
-
-		this.sprite_mainchar["body"] = new Image();
-		this.sprite_mainchar["body"].src = 'images/dogewarrior_body.png';
-		this.sprite_mainchar["body"].addEventListener('load', function() {
-			dw.on_load_completed();
-		}, false);
-
-		this.sprite_mainchar["head"] = new Image();
-		this.sprite_mainchar["head"].src = "images/dogewarrior_head.png";
-		this.sprite_mainchar["head"].addEventListener('load', function() {
-			dw.on_load_completed();
-		}, false);
-
-		this.sprite_dogecoin = new Image();
-		this.sprite_dogecoin.src = "images/dogecoin.png";
-		this.sprite_dogecoin.addEventListener('load', function() {
-			dw.on_load_completed();
-		},false);
-
-		this.sprite_particle = new Image();
-		this.sprite_particle.src = "images/particle.png";
-		this.sprite_particle.addEventListener('load', function() {
-			dw.on_load_completed();
-		},false);
-		
-		this.sprite_keypad = new Image();
-		this.sprite_keypad.src = "images/keypad.png";
-		this.sprite_particle.addEventListener('load', function() {
-			dw.on_load_completed();
-		},false);
-			
-
-
-		this.sndPlayerWalk = new Audio("sounds/sndPlayerWalk0.wav"); 
-		this.sndWow 	   = new Audio("sounds/wow.wav");
-		this.sndBreakBone  = new Audio("sounds/breakbone.wav");
-		this.sndSadDog     = new Audio("sounds/saddog.wav");
-		this.sndTeleport   = new Audio("sounds/teleport.wav");
-		this.sndBark 	   = new Audio("sounds/bark.wav");
-		this.sndMariofire  = new Audio("sounds/mariofire.wav");
-		this.sndSwitch     = new Audio("sounds/switch.wav");
-		this.sndOpendoor   = new Audio("sounds/opendoor.wav");
-		this.sndClosedoor  = new Audio("sounds/closedoor.wav");
-		this.sndMovingwall = new Audio("sounds/movingwall.wav");
-		this.sndPickup 	   = new Audio("sounds/pickup.wav");
-		this.sndCatpurr    = new Audio("sounds/catpurr.wav");
-		this.sndSplash     = new Audio("sounds/splash.wav");
-		this.sndSplash2    = new Audio("sounds/splash2.wav");
-		
-		this.sndBoom 	   = new Audio("sounds/boom.wav");
-		this.sndBoom2 	   = new Audio("sounds/boom2.wav");
-
-		this.sndRespawn    = new Audio("sounds/respawn.wav");
-		this.sndGameover   = new Audio("sounds/gameover.wav");
-		this.sndGiantWalk  = new Audio("sounds/giantwalk.wav");
-		this.sndMonsterFire = new Audio("sounds/monsterfire.wav");
-
-
-
-
-
-
-		this.loadJSON("maps/level01.json",function( map ) {
-			dw.map = map;
-			dw.auto_calculate_monster_boundary();
-		
-			dw.on_load_completed();
-			
-		}, false); 
-
-		
-
-		this.sprite_bgtiles = new Image();
-		this.sprite_bgtiles.src = "images/bgtiles.png";
-		this.sprite_bgtiles.addEventListener('load', function() {
-			dw.on_load_completed();
-		},false);
-
-		this.sprite_objecttiles = new Image();
-		this.sprite_objecttiles.src = "images/objecttiles.png";
-		this.sprite_objecttiles.addEventListener('load', function() {
-			dw.on_load_completed();
-		},false);
-
-		this.sprite_monster = new Image();
-		this.sprite_monster.src = "images/monster.png";
-		this.sprite_objecttiles.addEventListener('load', function() {
-			dw.on_load_completed();
-		},false);
-		
-
-		
-
-		document.addEventListener("keydown" , function( evt ) {
-			dw.on_keyDown( evt );
-		}, false );	
-
-		
-		document.addEventListener("keyup"   , function( evt ) {
-			dw.on_keyUp( evt );
-		}, false );	
-
-		
-		if ( this.ismobile == 1 ) {
-			
-
-			window.addEventListener('orientationchange', function(e) {
-				dw.on_orientationchange(e);
-			}, false );
-
-
-			document.addEventListener('touchstart', function(e) {
-			    e.preventDefault();
-			    dw.on_touchstart( e );
-			}, false);
-
-			document.addEventListener('touchend', function(e) {
-			    e.preventDefault();
-			    dw.on_touchend( e );
-			}, false);
-				
-		}
-
-	}
-
-	//------------------
-	this.on_orientationchange = function( evt ) {
-	}
-
-	
-
-
-	//----------
-	// Keypad for mobile
-	this.initKeypad = function() {
-
-		var keypad;
-		this.keypads.length = 0;
-
-
-		keypad = {
-			framex:1,
-			framey:0,
-			x:this.canvas.width  - 2 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:38
-		}
-		this.keypads.push( keypad );
-
-		keypad = {
-			framex:0,
-			framey:0,
-			x:this.canvas.width  - 3 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:37
-		}
-		this.keypads.push( keypad );
-
-		keypad = {
-			framex:3,
-			framey:0,
-			x:this.canvas.width  - 2 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:40
-		}
-		this.keypads.push( keypad );
-		
-		keypad = {
-			framex:2,
-			framey:0,
-			x:this.canvas.width  - 1 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:39
-		}
-		this.keypads.push( keypad );
-
-		keypad = {
-			framex:4,
-			framey:0,
-			x:this.canvas.width  - 3 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:3738
-		}
-		this.keypads.push( keypad );
-
-		keypad = {
-			framex:5,
-			framey:0,
-			x:this.canvas.width  - 1 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:3839
-		}
-
-		this.keypads.push( keypad );
-
-		keypad = {
-			framex:0,
-			framey:1,
-			x: 2,
-			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:90
-		}
-		this.keypads.push( keypad );
-
-		keypad = {
-			framex:1,
-			framey:1,
-			x: 1 *( this.setting_minblocksize * 2 ) + 2,
-			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:88
-		}
-		this.keypads.push( keypad );
-			
-
-		
-
-	}
-
-
-	//-----------------------
-	this.loadJSON = function( path, success, error ) {
-	    
-	    var xhr = new XMLHttpRequest();
-	    xhr.onreadystatechange = function() {
-	        if (xhr.readyState === XMLHttpRequest.DONE) {
-	            if (xhr.status === 200) {
-	                if (success)
-	                    success(JSON.parse(xhr.responseText));
-	            } else {
-	                if (error)
-	                    error(xhr);
-	            }
-	        }
-	    };
-	    xhr.open("GET", path, true);
-	    xhr.send();
-	}
-
-
-	//-----------------------------------------------
-	this.on_draw = function() {
-
-		var dw = this;
-		this.ctxt.clearRect( 0,0, this.canvas.width , this.canvas.height );
-
-
-		var cam_tile_y = this.camera.y / this.setting_minblocksize >> 0;
-		var cam_tile_x = this.camera.x / this.setting_minblocksize >> 0;
-
-		var tilex_count = this.canvas.width / this.setting_minblocksize >> 0 ;
-		var tiley_count = this.canvas.height / this.setting_minblocksize >> 0 ;
-
-
-		// Draw Background tiles
-		if ( this.map.layers ) {
-			for ( var layer = 0 ; layer < 3 ; layer += 1 ) {
-
-				
-				for ( var i = cam_tile_y - 1; i < cam_tile_y + tiley_count + 2 ; i++ ) {
-					for ( var j = cam_tile_x - 1; j < cam_tile_x + tilex_count + 2 ; j++ ) {
-
-						var data =0;
-						if ( i >= 0 && j >= 0 && i < this.map.layers[layer].height && j < this.map.layers[layer].width   ) {
-
-
-							var data = this.map.layers[layer].data[ i * this.map.layers[layer].width + j ];
-							
-							var tile_framex = ( data % 10 ) - 1;
-							var tile_framey = ( data / 10 ) >> 0 ;
-							var sprite = this.sprite_bgtiles;
-
-							if ( layer == this.backgroundobjectlayer_id ) {
-
-								var tile_framex = ( (data - 100 ) % 10 ) - 1;
-								var tile_framey = ( (data - 100 ) / 10 ) >> 0 ;
-								sprite = this.sprite_objecttiles;
-							}
-
-							if ( tile_framex >= 0 && tile_framey >= 0 ) {
-
-								this.ctxt.drawImage( sprite , 
-												this.setting_minblocksize * tile_framex,
-												this.setting_minblocksize * tile_framey,
-												this.setting_minblocksize,
-												this.setting_minblocksize,
-										(j * this.setting_minblocksize - this.camera.x ) >> 0, 
-										(i * this.setting_minblocksize - this.camera.y ) >> 0,
-										this.setting_minblocksize,
-										this.setting_minblocksize 
-											);
-							}
-					
-						}	
-					}
-				}
-			}
-		}
-
-		// Draw background objects
-		if ( this.backgroundobjects ) {
-
-			for ( var i = 0 ; i <  this.backgroundobjects.length ; i++ ) {
-				
-				object =  this.backgroundobjects[i];
-
-				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
-					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
-
-					if ( object.name == "switch" ) {
-
-						var switch_state = parseInt( object.properties.state ) || 0;
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-											2 * this.setting_minblocksize,
-											switch_state * this.setting_minblocksize,
-											this.setting_minblocksize,
-											this.setting_minblocksize,
-								object.x - this.camera.x , 
-								object.y - this.camera.y, 
-									this.setting_minblocksize, 
-									this.setting_minblocksize );	
-					
-
-					} else if ( object.name == "door" ) {
-
-						var door_state = parseInt( object.properties.state ) || 0;
-
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-											0 ,
-											door_state * ( 3 * this.setting_minblocksize ) ,
-											2 * this.setting_minblocksize,
-											3 * this.setting_minblocksize,
-								object.x - this.camera.x , 
-								object.y - this.camera.y, 
-									2 * this.setting_minblocksize,
-									3 * this.setting_minblocksize );	
-
-					}
-				}	
-			}
-		}	
-
-
-		// Draw pickables
-		if ( this.pickables ) {
-
-			for ( var i = 0 ; i < this.pickables.length ; i++ ) {
-				
-				object = this.pickables[i];
-
-				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
-					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
-
-					if ( object.name == "key" ) {
-
-
-						var key_type = parseInt( object.type );
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-											(key_type + 1 ) * this.setting_minblocksize ,
-											4 * this.setting_minblocksize,
-											this.setting_minblocksize,
-											this.setting_minblocksize,
-								object.x - this.camera.x , 
-								object.y - this.camera.y, 
-									this.setting_minblocksize, 
-									this.setting_minblocksize );	
-
-					
-					} else if ( object.name == "powerup" ) {
-
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-											3 * this.setting_minblocksize ,
-											5 * this.setting_minblocksize,
-											this.setting_minblocksize,
-											this.setting_minblocksize,
-								object.x - this.camera.x , 
-								object.y - this.camera.y, 
-									this.setting_minblocksize, 
-									this.setting_minblocksize );	
-
-					} else if ( object.name == "coinup" ) {
-
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-											4 * this.setting_minblocksize ,
-											5 * this.setting_minblocksize,
-											this.setting_minblocksize,
-											this.setting_minblocksize,
-								object.x - this.camera.x , 
-								object.y - this.camera.y, 
-									this.setting_minblocksize, 
-									this.setting_minblocksize );	
-					
-					} else if ( object.name == "hint" ) {
-
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-											5 * this.setting_minblocksize ,
-											5 * this.setting_minblocksize,
-											this.setting_minblocksize,
-											this.setting_minblocksize,
-								object.x - this.camera.x , 
-								object.y - this.camera.y, 
-									this.setting_minblocksize, 
-									this.setting_minblocksize );
-					} 
-
-
-				}	
-			}
-		}
-
-
-
-		// Draw foreground objects
-		if ( this.foregroundobjects ) {
-
-			for ( var i = 0 ; i < this.foregroundobjects.length ; i++ ) {
-				
-				object = this.foregroundobjects[i];
-
-				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
-					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
-
-				
-					if ( object.name == "movingplatform") {
-
-						var platform_tilewidth = ( object.width / this.setting_minblocksize ) >> 0;
-
-						for ( var j = 0 ; j < platform_tilewidth ; j++ ) { 
-							
-							this.ctxt.drawImage( this.sprite_bgtiles, 
-											1 * this.setting_minblocksize ,
-											0 * this.setting_minblocksize ,
-											this.setting_minblocksize,
-											this.setting_minblocksize,
-								( object.x + j * this.setting_minblocksize ) - this.camera.x , 
-								object.y - this.camera.y, 
-									this.setting_minblocksize, 
-									this.setting_minblocksize );	
-
-						}
-					
-					} else if ( object.name == "trapdoor" ) {
-
-						var trapdoor_state = parseInt( object.properties.state );
-
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-										2 * this.setting_minblocksize ,
-										(3 - trapdoor_state ) * this.setting_minblocksize ,
-										2 * this.setting_minblocksize,
-										1 * this.setting_minblocksize,
-							object.x - this.camera.x , 
-							object.y - this.camera.y, 
-								2 * this.setting_minblocksize, 
-								1 * this.setting_minblocksize );	
-				
-
-					} else if ( object.name == "zdoor") {
-
-						var zdoor_state = parseInt( object.properties.state );
-
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-										( 4 + zdoor_state * 2 ) * this.setting_minblocksize ,
-										0 ,
-										2 * this.setting_minblocksize,
-										3 * this.setting_minblocksize,
-							object.x - this.camera.x , 
-							object.y - this.camera.y, 
-								2 * this.setting_minblocksize, 
-								3 * this.setting_minblocksize );	
-
-					}
-
-
-
-				}	
-			}
-		}	
-
-		if ( this.player.death == 0 ) {
-
-			// Draw Main Characters
-			this.ctxt.drawImage( this.sprite_mainchar["body"] , 
-								   		this.player.width  * this.player.framex , 
-								   		this.player.height * this.player.framey , 
-								   		this.player.width , 
-								   		this.player.height , 
-								   this.player.x - this.camera.x, 
-								   this.player.y - this.camera.y, 
-								   this.player.width , 
-								   this.player.height );
-			
-			this.ctxt.drawImage( this.sprite_mainchar["head"] , 
-								   		40 * this.player.framex_head,
-								   		40 * this.player.framey_head,
-								   		40,
-								   		40,
-								   	this.player.x - this.camera.x + this.player.x_head ,
-								   	this.player.y - this.camera.y + this.player.y_head ,
-								   	40,
-								   	40 );
-
-		}
-
-		// Draw monster
-		for ( var i = 0 ; i < this.monsters.length ; i++ ) {
-			
-			var object = this.monsters[i];
-
-
-			// Only draw visible object. The camera is always half screen left and top of player so
-			if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
-				 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
-
-				if ( object.name == "monster_boss" ) {
-
-					this.ctxt.drawImage( this.sprite_monster, 
-										0   + ( object.framex ) * ( 4 * this.setting_minblocksize ) ,
-										400 + ( object.framey ) * ( 5 * this.setting_minblocksize ) ,
-										4 * this.setting_minblocksize,
-										5 * this.setting_minblocksize,
-							  object.x - 44 - this.camera.x , 
-							  object.y - 40 - this.camera.y , 
-								4 * this.setting_minblocksize, 
-								5 * this.setting_minblocksize );	
-
-					//head
-					this.ctxt.drawImage( this.sprite_monster, 
-										240   + ( object.head_framex ) * ( 2 * this.setting_minblocksize ) ,
-										160   + ( object.head_framey ) * ( 2 * this.setting_minblocksize ) ,
-										2 * this.setting_minblocksize,
-										2 * this.setting_minblocksize,
-							  object.x +  0 + object.head_offx  - this.camera.x, 
-							  object.y - 50 + object.head_offy  - this.camera.y, 
-								2 * this.setting_minblocksize, 
-								2 * this.setting_minblocksize );	
-
-
-				} else {
-				
-					this.ctxt.drawImage( this.sprite_monster, 
-										( object.framex ) * ( 2 * this.setting_minblocksize ) ,
-										( object.framey ) * ( 2 * this.setting_minblocksize ) ,
-										2 * this.setting_minblocksize,
-										2 * this.setting_minblocksize,
-							  object.x - this.camera.x , 
-							  object.y + 3 - this.camera.y, 
-								2 * this.setting_minblocksize, 
-								2 * this.setting_minblocksize );	
-
-					
-				}
-			}	
-		}
-
-
-
-		// Draw Bullets 
-		for ( var i = 0 ; i < this.setting_maxbullet ; i++ ) {
-				
-			var bullet = this.player.bullets[i];
-
-			if ( bullet.active == true ) {
-				
-				var basesize = 14;
-				var upgraded_size = basesize + ( bullet.power - 1 ) * 3 ;
-
-				this.ctxt.drawImage( this.sprite_dogecoin, 
-										bullet.owner * 64,
-										0,
-										64,
-										64,
-							bullet.x - this.camera.x - upgraded_size/2, 
-							bullet.y - this.camera.y - upgraded_size/2, 
-								upgraded_size, 
-								upgraded_size );
-
-			} 
-		}
-
-		// Draw particles 
-		for ( var i = 0; i < this.setting_maxparticle ; i++ ) {
-
-			var particle = this.particles[i];
-			if ( particle.active > 0 ) {
-
-				this.ctxt.drawImage( this.sprite_particle, 
-										particle.framex * ( particle.size_x * this.setting_minblocksize ),
-										particle.framey * this.setting_minblocksize,
-										particle.size_x * this.setting_minblocksize,
-										particle.size_y * this.setting_minblocksize,
-							particle.x - this.camera.x - ( particle.size_x * this.setting_minblocksize )/2, 
-							particle.y - this.camera.y - ( particle.size_y * this.setting_minblocksize )/2, 
-								particle.size_x * this.setting_minblocksize,
-								particle.size_y * this.setting_minblocksize);	
-
-
-			}
-		}
-
-
-
-		
-		// Draw inventory
-		for ( var i = 0 ; i < this.player.inventory.length ; i++ ){
-
-			object = this.player.inventory[i];
-			if ( object.name == "key" ) {
-
-				this.ctxt.drawImage( this.sprite_bgtiles, 
-									4 * this.setting_minblocksize ,
-									8 * this.setting_minblocksize,
-									this.setting_minblocksize,
-									this.setting_minblocksize,
-						i * ( this.setting_minblocksize + 10 ) + 10,
-						this.canvas.height - ( this.setting_minblocksize + 10 ),
-							this.setting_minblocksize, 
-							this.setting_minblocksize );
-
-
-				var key_type = parseInt( object.type );
-						this.ctxt.drawImage( this.sprite_objecttiles, 
-											(key_type + 1 ) * this.setting_minblocksize ,
-											4 * this.setting_minblocksize,
-											this.setting_minblocksize,
-											this.setting_minblocksize,
-								i * ( this.setting_minblocksize + 10 ) + 10 + 5,
-								this.canvas.height - ( this.setting_minblocksize + 10 ) + 5,
-									this.setting_minblocksize - 10, 
-									this.setting_minblocksize - 10);	
-					
-			}
-		}
-
-
-		// Draw Life and HP UI
-		if ( this.player.life >= 0 ) {
-
-			for ( var i = 0 ; i < this.player.life ; i++ ) {
-
-				this.ctxt.drawImage( this.sprite_mainchar["head"] , 
-								   		0,
-								   		0,
-								   		40,
-								   		40,
-								   	10 + 40 * i ,
-								   	10 ,
-								   	40,
-								   	40 );	
-			}
-
-			var lifebarsize = this.player.hp * 68 / this.setting_hp_per_life  >> 0
-			if ( lifebarsize < 1 ) {
-				lifebarsize = 1 
-			}
-			
-			this.ctxt.drawImage( this.sprite_objecttiles, 
-									320,
-									0,
-									80,
-									40,
-								20,
-								50,
-								80,
-								40 );
-			
-
-			this.ctxt.drawImage( this.sprite_objecttiles, 
-										320,
-										40,
-											lifebarsize,
-											20,
-								26,
-								56,
-									lifebarsize,
-									20 );
-
-		}
-
-		// Draw message
-		if ( this.displaytick > 0 ) {
-
-			var alpha;
-			if ( this.displaytick > 100 ) {
-				alpha = 1.0;
-			} else {
-				alpha = ( this.displaytick / 100 ).toFixed(2);
-			}
-			this.ctxt.fillStyle =  "rgba( 255 , 255 ,255, " + alpha +")";
-      		this.ctxt.fillText( this.displaymsg , this.canvas.width /2 - this.displaymsg.length * 10 / 2, this.canvas.height - 13 );
-			
-		}
-
-
-		// Draw teleport transition effect
-		if ( this.teleporting > 0 ) {
-			
-			this.ctxt.beginPath()
-			this.ctxt.rect( 0 , 0, this.canvas.width, this.canvas.height );
-
-			var alpha;
-			if ( this.teleporting > 10 ) {
-				alpha = ( 20 - this.teleporting ) / 10 ;
-			} else {
-				alpha = this.teleporting / 10 ;
-			}
-
-      		this.ctxt.fillStyle =  "rgba(0, 0, 0, " +  alpha + ")";
-      		this.ctxt.fill();
-      		this.ctxt.strokeStyle = 'black';
-      		this.ctxt.stroke();
-      		this.ctxt.closePath();
-      	}
-
-      	if ( this.player.life < 0 ) {
-
-      		this.ctxt.fillStyle = "#ffffff";
-      		var msg = "GAME OVER. Press P to restart.";
-			this.ctxt.fillText( msg , this.canvas.width /2 - msg.length * 10 / 2, this.canvas.height/2 - 6 );
-			
-
-      	}
-
-
-      	// Draw Keypad 
-      	//if ( this.ismobile == 1 ) {
-
-      		for ( var i = 0 ; i < this.keypads.length ; i++ ) {
-      			
-      			object = this.keypads[i];	
-      			this.ctxt.drawImage( this.sprite_keypad, 
-										object.framex * this.setting_minblocksize * 2,
-										object.framey * this.setting_minblocksize * 2,	
-										this.setting_minblocksize * 2,
-										this.setting_minblocksize * 2,
-								object.x ,
-								object.y ,
-									this.setting_minblocksize * 2, 
-									this.setting_minblocksize * 2);
-
-
-      		}
-      	//}
-
-		this.debug();
-
-	}
-
-
-
-
-
-	//--------
-	this.wasd_to_arrow = function( keyCode ) {
-
-		var newKeyCode = keyCode ;
-
-		
-		if ( keyCode == 0x61 - 0x20 ) { newKeyCode = 37; }
-		if ( keyCode == 0x64 - 0x20 ) { newKeyCode = 39; }
-		if ( keyCode == 0x77 - 0x20 ) { newKeyCode = 38; }
-		if ( keyCode == 0x73 - 0x20 ) { newKeyCode = 40; }
-		if ( keyCode == 190 ) { newKeyCode = 90 ; }
-		if ( keyCode == 191 ) { newKeyCode = 88 ; }
-		
-			
-		return newKeyCode;
-	}
-
-
-
-
-
-	//-------------------------------------------------------------------------------------
-	this.on_keyDown = function( evt ) {
-
-		var keyCode = evt.which?evt.which:evt.keyCode; 
-			
-		keyCode = this.wasd_to_arrow(keyCode);
-		
-
-
-		if ( keyCode >= 37 && keyCode <= 40 ) {
-			this.player.control_direction[ keyCode - 37 ] = 1 ;
-
-
-		} else if ( keyCode == 90 ) {
-
-			if ( this.player.firing == 0  && this.player.in_pain == 0) {
-				
-				this.player.firing = 1;
-			}
-		
-		} else if ( keyCode == 88 ) {
-			this.doaction();
-		}
-
-
-	}
-
-
-	//-------------------------------------------------------------------------------------
-	this.on_keyUp = function( evt ) {
-
-		var keyCode = evt.which?evt.which:evt.keyCode; 
-		keyCode = this.wasd_to_arrow(keyCode);
-		
-
-		if ( keyCode >= 37 && keyCode <= 40 ) {
-			this.player.control_direction[ keyCode - 37 ] = 0 ;
-		
-		} else if ( keyCode == 80 ) {
-
-			if ( this.player.life < 0 ) {
-				this.reinit_game(); 
-			}
-		}
-
-	}
-
-	//-----------
-	this.on_touchstart = function( touch ) {
-
-		for ( var i = 0 ; i < this.keypads.length ; i++ ) {
-			var keypad = this.keypads[i];
-			if ( touch.pageX >= keypad.x && touch.pageX <= keypad.x + 2 * this.setting_minblocksize && 
-				 touch.pageY >= keypad.y && touch.pageY <= keypad.y + 2 * this.setting_minblocksize) {
-
-				var keyCode = keypad.keycode;
-				if ( keyCode >= 37 && keyCode <= 40 ) {
-					this.player.control_direction[ keyCode - 37 ] = 1 ;
-				
-				} else if ( keyCode == 3738 ) {
-				
-					this.player.control_direction[ 0 ] = 1;
-					this.player.control_direction[ 1 ] = 1;
-
-				} else if ( keyCode == 3839 ) {
-
-					this.player.control_direction[ 2 ] = 1;
-					this.player.control_direction[ 1 ] = 1;
-
-				} else if ( keyCode == 90 ) {
-
-					if ( this.player.firing == 0  && this.player.in_pain == 0) {
-						
-						this.player.firing = 1;
-					}
-				
-				} else if ( keyCode == 88 ) {
-					this.doaction();
-				}
-
-			} 
-		}
-	}
-
-
-	//-------
-	this.on_touchend = function(touch ) {
-
-		for ( i = 0 ; i < 4; i++ ) {
-			this.player.control_direction[ i ] = 0 ;
-		}	
-	}	
-
-
-
-	//-------------------------------------------------------------------------------------
-	this.on_load_completed = function() {
-
-		var dw = this;
-		this.resource_loaded += 1;
-		
-		if ( this.resource_loaded == this.total_resource ) {
-			
-			console.log("Loading Completed");
-			this.reinit_game();
-			
-			//window.requestAnimationFrame( function() {
-			//	dw.on_timer();
-			//});
-
-			setTimeout( function() {
-				dw.on_timer();
-			}, this.timerinterval );
-			
-			
-
-		} else {
-			this.update_loading_screen();
-		}
-	}
-
-	//----------
-	this.on_timer = function() {
-
-		var dw = this;
-		
-		
-
-			if ( this.player.death == 0 ) {
-			
-				this.player_falling();
-				this.player_crouch();
-				this.player_inpain();
-				this.player_jump();
-				this.player_walkleft();
-				this.player_walkright();
-				this.player_idle();
-				this.player.framey_head = this.player.direction;
-				this.player.framex_head = 0;
-				if ( this.player.direction == 1 ) {
-					this.player.framex_head = 3;
-				}
-				this.player_fire();
-				this.player_pickup_objects();
-				this.player_collide_with_trigger();
-
-			} else {
-				this.animate_player_death();
-			}
-
-
-			this.spawn_monsters();
-			this.animate_monsters();
-			this.animate_bullets();
-			this.animate_particles();
-			this.animate_transition();
-			this.animate_foregroundobjects();
-			
-			this.camera.x = this.player.x - this.canvas.width / 2  + this.player.width / 2 ;
-			
-			var camera_target_y = this.player.y - this.canvas.height / 2 + this.player.height / 2 ;
-			this.camera.y +=  (( camera_target_y - this.camera.y ) / 10 >> 0 ); 
-			
-
-			this.player.tick += 1;
-			this.player.tick2 += 1;
-			
-			if ( this.displaytick > 0 ) {
-				this.displaytick -= 1;
-			}
-
-
-			if ( this.particle_queue.length > 0 ) {
-
-				this.particle_queue_tick += 1;
-				if ( this.particle_queue_tick > 1 ) {
-
-					var p = this.particle_queue.shift()
-					this.fireparticle( p[0] , p[1] , p[2] , p[3], p[4] , p[5] , p[6] ) ;
-					
-					
-
-					this.particle_queue_tick = 0;	
-				}
-			}
-
-			this.on_draw();
-
-		
-
-		
-		//window.requestAnimationFrame( function() {
-		//	dw.on_timer();
-		//});
-		setTimeout( function() {
-			dw.on_timer();
-		}, this.timerinterval );
-
-			
-			
-
-		
-		
-
-	}
 
 
 
@@ -1204,6 +128,34 @@ function Dogewarrior() {
 		}
 
 
+	}
+
+
+	//-----
+	this.animate_backgroundobjects = function() {
+
+		if ( this.backgroundobjects ) {
+
+			for ( var i = 0 ; i < this.backgroundobjects.length ; i++ ) {
+				
+				object = this.backgroundobjects[i];
+
+				if ( object.name == "unaryswitch" ){
+
+					var objstate = parseInt(object.properties.state);
+					if ( objstate > 0 ) {
+						
+						object.tick = parseInt( object.tick ) || 0;
+						object.tick += 1;
+
+						if ( object.tick > 5 ) {
+							object.properties.state = ( objstate + 1 ) % 3;
+							object.tick = 0;
+						}	
+					}
+				}
+			}
+		}
 	}
 
 
@@ -1632,6 +584,7 @@ function Dogewarrior() {
 
 	}
 
+
 	
 	//-------
 	this.auto_calculate_monster_boundary = function( ) {
@@ -1707,6 +660,47 @@ function Dogewarrior() {
 			}
 		}
 			
+	}
+
+
+	//--------
+	this.auto_randomize_puzzles = function() {
+
+		if ( this.backgroundobjects ) {
+			for ( var i = 0 ; i < this.backgroundobjects.length ; i++ ) {
+
+				var object = this.backgroundobjects[i];
+				if ( object.name == "puzzle" ) {
+
+					object.state = object.properties.solution.split(",").map( Number) ;
+					
+					if ( object.properties.init == "random" ) {
+						
+						if ( object.type == "slider"  ) {
+							//this.shuffle_array( object.state );
+							this.movepuzzle( object , 3 );
+							for ( j = 0 ; j < 10 ; j++ ) {
+								this.movepuzzle( object , this.rand(4) );
+							}
+						}
+							
+					} else {
+						object.state = object.properties.init.split(",").map( Number );
+					}
+					
+				}
+			}
+		}
+	}
+
+
+
+
+	//------------------------------
+	this.baseName = function(str) {
+
+	   var base = new String(str).substring(str.lastIndexOf('/') + 1); 
+	   return base;
 	}
 
 
@@ -1869,6 +863,7 @@ function Dogewarrior() {
 				switch ( object.name ) {
 
 					case "door":
+					case "unaryswitch":
 					case "switch" :
 					{
 
@@ -1902,6 +897,78 @@ function Dogewarrior() {
 								}
 
 								break;
+
+
+
+
+							} else if ( object.name == "unaryswitch") {
+								
+								var objstate = parseInt( object.properties.state ) || 0 
+								if ( objstate == 0 ) {
+									this.sndSwitch2.play();
+									object.properties.state = objstate + 1;
+								}
+
+								if ( object.type == "movingplatformswitch" ) {
+
+									for ( j = 0 ; j < fg_objects_arr.length ; j++ ) {
+										
+										var object_j = fg_objects_arr[j];
+										if ( object_j.name == "movingplatform" && object_j.properties.id == object.properties.movingplatformid ) {
+											object_j.properties[ object.properties.controlproperty ] = parseInt(object.properties.value) ;
+										}
+										 
+									}	
+								} else if ( object.type == "puzzleswitch") {
+
+									var switchval = parseInt( object.properties.value );
+											
+
+									for ( j = 0 ; j < bg_objects_arr.length ; j++ ) {
+										var object_j = bg_objects_arr[j];
+
+										if ( object_j.name == "puzzle" && object_j.properties.id == object.properties.puzzleid ) {
+
+											var moved = 0;
+											if ( object_j.type == "slider" ) {
+											
+												var moved = this.movepuzzle( object_j , switchval );
+												
+											} else if ( object_j.type == "filler" ) {
+
+												var moved = this.fillpuzzle( object_j , switchval );
+											}
+
+
+
+											if ( object_j.state.join(",") == object_j.properties.solution ) {
+
+												if ( typeof object_j.solved == 'undefined' ) {
+													this.sndSurprise.play();
+													object_j.solved = 1;
+												}
+
+												for ( k = 0 ; k < fg_objects_arr.length ; k++ ) {
+													
+													var object_k = fg_objects_arr[k];
+													if ( object_k.name == "movingplatform" && object_k.properties.id == object_j.properties.movingplatformid ) {
+														object_k.properties[ object_j.properties.controlproperty ] = 1 ;
+													}
+													 
+												}	
+
+											} else {
+												if ( moved == 1 ) {
+													this.sndMovingwall.play();
+												}
+											}
+
+										}
+										 
+									}	
+
+								}
+
 
 							} else if ( object.name == "switch" ) {
 
@@ -1937,7 +1004,7 @@ function Dogewarrior() {
 
 												} else {
 													object_j.properties.state = 1 - parseInt(object.properties.state );
-													object_j.properties.state == 0 ? this.sndOpendoor.play() : this.sndClosedoor.play();
+													object_j.properties.state == 0 ? this.sndOpenTrapdoor.play() : this.sndCloseTrapdoor.play();
 												}
 											}
 										}
@@ -1959,7 +1026,10 @@ function Dogewarrior() {
 
 										}
 										 
-									}	
+									}
+
+
+
 
 								} else if ( object.type == "movingplatformswitch" ) {
 
@@ -2010,52 +1080,353 @@ function Dogewarrior() {
 	}
 
 
-	//---------------------------
-	this.monster_to_die = function( monster , index ) {
 
-		if ( monster.name == "monster_boss" ) {
 
-			for ( i = 0 ; i < 10 ; i++ ) {
-				
-				this.fireparticle( monster.x + this.rand(100)  , monster.y - 40 + i * 20 , 4 , 2 , 2 , 7 , 4 );
-				this.fireparticle( monster.x + this.rand(100)  , monster.y - 40 + i * 20 , 4 , 2 , 2 , 7 , 4 );
-			}
-			for ( i = 0 ; i < 10 ; i++ ) {
-				
-				this.particle_queue.push( [ monster.x - 20 + this.rand(100) , monster.y - 40 + i * 20, 6,  3, 3, 7, 3 ] );
-			}
-					
 
-			this.sndBoom.play();
-			this.sndBoom2.play();
-			// Reward key id 12
-			if ( monster.rewardkeyid ) {
 
-				var key = {};
-				key.name = "key"
-				key.x = monster.x;
-				key.y = monster.y;
-				key.type = 3;
-				key.properties = {}
-				key.properties.id = monster.rewardkeyid;
-				this.pickables.push(key );
-			}	
-
-		} else {
-			this.fireparticle( monster.x + 40  , monster.y + 40 , 4 , 2 , 2 , 7 , 4 );
-			
-			if ( this.sndSplash.paused ) {
-				this.sndSplash.play();
+	//------------------------------------------------------------------
+	this.init = function( level ) {
+		
+		var dw = this;
+		if (window.top !== window.self) {
+			if ( /kongregate/i.test( window.location.href ) ) {
+				this.fixedsize = true;
 			} else {
-				this.sndSplash2.play();
+				window.top.location.replace(window.self.location.href);
 			}
-
 		}
 
+
 		
-		// Clear the monster
-		this.monsters.splice( index , 1 );
-	} 
+		
+		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		 	this.ismobile = 1;
+		}
+		
+		this.canvas = document.getElementById("cv");
+		this.canvas.style.backgroundColor = "#000000";
+		
+
+		window.addEventListener('resize', function(e) {
+			dw.resizewindow();
+		}, false);
+		this.resizewindow();
+
+		
+
+
+		this.ctxt = this.canvas.getContext('2d');
+		this.player.width 				= 120;
+		this.player.height 				= 120;
+		this.player.control_direction 	= [0,0,0,0];
+		
+		this.player.bullets 			= [];
+		this.player.bulletindex 		= 0;
+
+		this.particles 					= [];
+		this.particleindex 				= 0;
+
+
+		for ( var i = 0 ; i < this.setting_maxbullet ; i++ ) {
+			this.player.bullets[i] = {
+				active: false,
+				x : 0,
+				y : 0,
+				vx: 0,
+				vy: 0	
+			}
+		}
+
+		for ( var i = 0 ; i < this.setting_maxparticle ; i++ ) {
+			this.particles[i] = {
+				active: 0,
+				x : 0,
+				y : 0,
+				framex:0,
+				framey:0
+			}
+		}
+
+
+
+
+		this.sprite_mainchar["body"] = new Image();
+		this.sprite_mainchar["body"].src = 'images/dogewarrior_body.png';
+		this.sprite_mainchar["body"].addEventListener('load', function() {
+			dw.on_load_completed();
+		}, false);
+
+		this.sprite_mainchar["head"] = new Image();
+		this.sprite_mainchar["head"].src = "images/dogewarrior_head.png";
+		this.sprite_mainchar["head"].addEventListener('load', function() {
+			dw.on_load_completed();
+		}, false);
+
+		this.sprite_dogecoin = new Image();
+		this.sprite_dogecoin.src = "images/dogecoin.png";
+		this.sprite_dogecoin.addEventListener('load', function() {
+			dw.on_load_completed();
+		},false);
+
+		this.sprite_particle = new Image();
+		this.sprite_particle.src = "images/particle.png";
+		this.sprite_particle.addEventListener('load', function() {
+			dw.on_load_completed();
+		},false);
+		
+		this.sprite_keypad = new Image();
+		this.sprite_keypad.src = "images/keypad.png";
+		this.sprite_particle.addEventListener('load', function() {
+			dw.on_load_completed();
+		},false);
+			
+
+
+		this.sndPlayerWalk = new Audio("sounds/sndPlayerWalk0.wav"); 
+		this.sndWow 	   = new Audio("sounds/wow.wav");
+		this.sndBreakBone  = new Audio("sounds/breakbone.wav");
+		this.sndSadDog     = new Audio("sounds/saddog.wav");
+		this.sndTeleport   = new Audio("sounds/teleport.wav");
+		this.sndBark 	   = new Audio("sounds/bark.wav");
+		this.sndMariofire  = new Audio("sounds/mariofire.wav");
+		this.sndSwitch     = new Audio("sounds/switch.wav");
+		this.sndSwitch2	   = new Audio("sounds/switch2.wav");
+		
+		this.sndOpendoor   	= new Audio("sounds/opendoor.wav");
+		this.sndClosedoor  	= new Audio("sounds/closedoor.wav");
+
+		this.sndOpenTrapdoor   = new Audio("sounds/opendoor.wav");
+		this.sndCloseTrapdoor  = new Audio("sounds/closedoor.wav");
+		
+		this.sndMovingwall = new Audio("sounds/movingwall.wav");
+		this.sndPickup 	   = new Audio("sounds/pickup.wav");
+		this.sndCatpurr    = new Audio("sounds/catpurr.wav");
+		this.sndSplash     = new Audio("sounds/splash.wav");
+		this.sndSplash2    = new Audio("sounds/splash2.wav");
+		this.sndBoom 	   = new Audio("sounds/boom.wav");
+		this.sndBoom2 	   = new Audio("sounds/boom2.wav");
+		this.sndRespawn    = new Audio("sounds/respawn.wav");
+		this.sndGameover   = new Audio("sounds/gameover.wav");
+		this.sndGiantWalk  = new Audio("sounds/giantwalk.wav");
+		this.sndMonsterFire = new Audio("sounds/monsterfire.wav");
+		this.sndSurprise 	= new Audio("sounds/surprise.wav");
+
+
+
+
+
+
+		this.loadJSON("maps/level" + level + ".json",function( map ) {
+			dw.map = map;
+
+			dw.load_map_resources();
+			dw.auto_calculate_monster_boundary();
+			dw.on_load_completed();
+			
+		}, false); 
+
+
+		
+		
+
+		
+
+		document.addEventListener("keydown" , function( evt ) {
+			dw.on_keyDown( evt );
+		}, false );	
+
+		
+		document.addEventListener("keyup"   , function( evt ) {
+			dw.on_keyUp( evt );
+		}, false );	
+
+		
+		if ( this.ismobile == 1 ) {
+			
+
+			window.addEventListener('orientationchange', function(e) {
+				dw.on_orientationchange(e);
+			}, false );
+
+
+			document.addEventListener('touchstart', function(e) {
+			    e.preventDefault();
+			    dw.on_touchstart( e );
+			}, false);
+
+			document.addEventListener('touchend', function(e) {
+			    e.preventDefault();
+			    dw.on_touchend( e );
+			}, false);
+				
+		}
+
+	}
+
+
+
+
+	//----------
+	// Keypad for mobile
+	this.initKeypad = function() {
+
+		var keypad;
+		this.keypads.length = 0;
+
+
+		keypad = {
+			framex:1,
+			framey:0,
+			x:this.canvas.width  - 2 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:38
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:0,
+			framey:0,
+			x:this.canvas.width  - 3 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:37
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:3,
+			framey:0,
+			x:this.canvas.width  - 2 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:40
+		}
+		this.keypads.push( keypad );
+		
+		keypad = {
+			framex:2,
+			framey:0,
+			x:this.canvas.width  - 1 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:39
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:4,
+			framey:0,
+			x:this.canvas.width  - 3 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:3738
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:5,
+			framey:0,
+			x:this.canvas.width  - 1 *( this.setting_minblocksize * 2 ) - 2,
+			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:3839
+		}
+
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:0,
+			framey:1,
+			x: 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:90
+		}
+		this.keypads.push( keypad );
+
+		keypad = {
+			framex:1,
+			framey:1,
+			x: 1 *( this.setting_minblocksize * 2 ) + 2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:88
+		}
+		this.keypads.push( keypad );
+			
+
+		
+
+	}
+
+
+	//-----------------------
+	this.loadJSON = function( path, success, error ) {
+	    
+	    var xhr = new XMLHttpRequest();
+	    xhr.onreadystatechange = function() {
+	        if (xhr.readyState === XMLHttpRequest.DONE) {
+	            if (xhr.status === 200) {
+	                if (success)
+	                    success(JSON.parse(xhr.responseText));
+	            } else {
+	                if (error)
+	                    error(xhr);
+	            }
+	        }
+	    };
+	    xhr.open("GET", path, true);
+	    xhr.send();
+	}
+
+	//--------------------------
+	this.load_map_resources = function() {
+
+		var dw = this;
+		var imagePath = "images";
+
+		for ( var i = 0 ; i <  this.map.tilesets.length ; i++ ) {
+			
+			if ( this.map.tilesets[i].name == "bgtiles" ) {
+
+
+				// Tiles
+				this.sprite_bgtiles = new Image();
+				this.sprite_bgtiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image );
+				this.sprite_bgtiles.addEventListener('load', function() {
+					dw.on_load_completed();
+				},false);
+
+			} else if ( this.map.tilesets[i].name == "objecttiles" ) {
+
+				// Objects
+				this.sprite_objecttiles = new Image();
+				this.sprite_objecttiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image );
+				this.sprite_objecttiles.addEventListener('load', function() {
+					dw.on_load_completed();
+				},false);
+
+			} else if ( this.map.tilesets[i].name == "monster" ) {
+
+				// Monsters
+				this.sprite_monster = new Image();
+				this.sprite_monster.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image );
+				this.sprite_objecttiles.addEventListener('load', function() {
+					dw.on_load_completed();
+				},false);
+
+			}
+		}
+
+		// Overwrite sound if provided.
+		if ( this.map.properties["sndOpendoor"] ) {
+			this.sndOpendoor   = new Audio(this.map.properties["sndOpendoor"]);
+		}
+		if ( this.map.properties["sndClosedoor"] ) {
+			this.sndClosedoor  = new Audio(this.map.properties["sndOpendoor"]);
+		}
+		
+		if ( this.map.properties["mp3bgmusic"] ) {
+			this.mp3bgmusic 		= new Audio(this.map.properties["mp3bgmusic"]);
+			this.mp3bgmusic.loop 	= true;
+		}
+
+
+	}
+
 
 
 	//------
@@ -2170,6 +1541,930 @@ function Dogewarrior() {
 
 		
 	}
+
+	//-----
+	this.fillpuzzle = function( object_j , fillval ) {
+
+		var puzzlewidth = ( object_j.width / this.setting_minblocksize ) >> 0;
+		var puzzleheight = ( object_j.height / this.setting_minblocksize ) >> 0;
+		
+		for ( var i = 0 ; i < puzzleheight ; i++ ) {
+			
+			var tobreak = 0;
+			for ( var j = 0 ; j < puzzlewidth ; j++ ) {
+				
+				if ( fillval == 0 ) {
+					object_j.state[ i * puzzlewidth + j ] = 0;
+				} else {
+					
+					var curval = object_j.state[ i * puzzlewidth + j ] ;
+					if ( curval == 0 ) {
+						object_j.state[ i * puzzlewidth + j ] = fillval;
+						tobreak = 1;
+						break;
+					}
+				}
+			}
+
+			if ( tobreak == 1 ) {
+				break;
+			}
+		}
+		return tobreak;
+	}
+
+
+	///----------
+	this.movepuzzle = function( object_j , direction ) {
+
+		var indexof_0 = object_j.state.indexOf(0);
+		var puzzlewidth = ( object_j.width / this.setting_minblocksize ) >> 0;
+		var puzzleheight = ( object_j.height / this.setting_minblocksize ) >> 0;
+		var moved = 0;
+
+		if ( direction == 0 && indexof_0 % puzzlewidth > 0 ) {
+		
+			var tmp = object_j.state[ indexof_0 - 1 ];
+			object_j.state[ indexof_0 - 1 ] = 0;
+			object_j.state[ indexof_0 ] = tmp;
+			moved = 1;
+
+		
+		} else if ( direction == 1 &&   (( indexof_0 / puzzlewidth ) >> 0 ) > 0  ) {
+
+			var tmp = object_j.state[ indexof_0 - puzzlewidth ];
+			object_j.state[ indexof_0 - puzzlewidth ] = 0;
+			object_j.state[ indexof_0 ] = tmp;
+			moved = 1;
+				
+		} else if ( direction == 2 && indexof_0 % puzzlewidth < puzzlewidth - 1 ) {
+
+			var tmp = object_j.state[ indexof_0 + 1 ];
+			object_j.state[ indexof_0 + 1 ] = 0;
+			object_j.state[ indexof_0 ] = tmp;	
+			moved = 1;
+			
+		} else if ( direction == 3 && (( indexof_0 / puzzlewidth ) >> 0 ) < puzzleheight - 1  ) {
+
+			var tmp = object_j.state[ indexof_0 + puzzlewidth ];
+			object_j.state[ indexof_0 + puzzlewidth ] = 0;
+			object_j.state[ indexof_0 ] = tmp;
+			moved = 1;
+			
+		}
+
+		return moved;
+	}
+
+
+
+	//-----------------------------------------------
+	this.on_draw = function() {
+
+		var dw = this;
+		this.ctxt.clearRect( 0,0, this.canvas.width , this.canvas.height );
+
+
+		var cam_tile_y = this.camera.y / this.setting_minblocksize >> 0;
+		var cam_tile_x = this.camera.x / this.setting_minblocksize >> 0;
+
+		var tilex_count = this.canvas.width / this.setting_minblocksize >> 0 ;
+		var tiley_count = this.canvas.height / this.setting_minblocksize >> 0 ;
+
+
+		// Draw Background tiles
+		if ( this.map.layers ) {
+			for ( var layer = 0 ; layer < 3 ; layer += 1 ) {
+
+				
+				for ( var i = cam_tile_y - 1; i < cam_tile_y + tiley_count + 2 ; i++ ) {
+					for ( var j = cam_tile_x - 1; j < cam_tile_x + tilex_count + 2 ; j++ ) {
+
+						var data =0;
+						if ( i >= 0 && j >= 0 && i < this.map.layers[layer].height && j < this.map.layers[layer].width   ) {
+
+
+							var data = this.map.layers[layer].data[ i * this.map.layers[layer].width + j ];
+							
+							var tile_framex = ( data % 10 ) - 1;
+							var tile_framey = ( data / 10 ) >> 0 ;
+							var sprite = this.sprite_bgtiles;
+
+							if ( layer == this.backgroundobjectlayer_id ) {
+
+								var tile_framex = ( (data - 100 ) % 10 ) - 1;
+								var tile_framey = ( (data - 100 ) / 10 ) >> 0 ;
+								sprite = this.sprite_objecttiles;
+							}
+
+							if ( tile_framex >= 0 && tile_framey >= 0 ) {
+
+								this.ctxt.drawImage( sprite , 
+												this.setting_minblocksize * tile_framex,
+												this.setting_minblocksize * tile_framey,
+												this.setting_minblocksize,
+												this.setting_minblocksize,
+										(j * this.setting_minblocksize - this.camera.x ) >> 0, 
+										(i * this.setting_minblocksize - this.camera.y ) >> 0,
+										this.setting_minblocksize,
+										this.setting_minblocksize 
+											);
+							}
+					
+						}	
+					}
+				}
+			}
+		}
+
+		// Draw background objects
+		if ( this.backgroundobjects ) {
+
+			for ( var i = 0 ; i <  this.backgroundobjects.length ; i++ ) {
+				
+				object =  this.backgroundobjects[i];
+
+				// Only draw visible object. The camera is always half screen left and top of player so
+				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
+
+					if ( object.name == "switch" ) {
+
+						var switch_state = parseInt( object.properties.state ) || 0;
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											2 * this.setting_minblocksize,
+											switch_state * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
+					
+
+					} else if ( object.name == "door" ) {
+
+						var door_state = parseInt( object.properties.state ) || 0;
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											0 ,
+											door_state * ( 3 * this.setting_minblocksize ) ,
+											2 * this.setting_minblocksize,
+											3 * this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									2 * this.setting_minblocksize,
+									3 * this.setting_minblocksize );	
+
+					} else if ( object.name == "unaryswitch" ) {
+
+						var switch_state = parseInt( object.properties.state ) || 0;
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											switch_state * this.setting_minblocksize,
+											10 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
+					
+					} else if ( object.name == "puzzle" ) {
+
+						var objwidth 	= object.width 	/ this.setting_minblocksize;
+						var objheight 	= object.height / this.setting_minblocksize;
+						
+
+						for ( k = 0 ; k < objheight ; k++ ) {
+							for ( j = 0 ; j < objwidth ; j++ ) {
+
+								var srcx,srcy;
+								var pat = object.state[ k * objwidth + j  ];
+								if ( pat == 0 ) {
+									srcx = 2;
+									srcy = 11;
+								} else {
+									srcx = ( pat - 1 ) % 2;
+									srcy = ( ( ( pat - 1 ) / 2 ) >> 0 ) + 11;
+								}
+
+								this.ctxt.drawImage( this.sprite_objecttiles, 
+											srcx * this.setting_minblocksize,
+											srcy * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x + (this.setting_minblocksize * j) - this.camera.x , 
+								object.y + (this.setting_minblocksize * k)- this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
+
+									
+							}
+						}
+
+						
+					}
+				}	
+			}
+		}	
+
+
+		// Draw pickables
+		if ( this.pickables ) {
+
+			for ( var i = 0 ; i < this.pickables.length ; i++ ) {
+				
+				object = this.pickables[i];
+
+				// Only draw visible object. The camera is always half screen left and top of player so
+				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
+
+					if ( object.name == "key" ) {
+
+
+						var key_type = parseInt( object.type );
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											(key_type + 1 ) * this.setting_minblocksize ,
+											4 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
+
+					
+					} else if ( object.name == "powerup" ) {
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											3 * this.setting_minblocksize ,
+											5 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
+
+					} else if ( object.name == "coinup" ) {
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											4 * this.setting_minblocksize ,
+											5 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
+					
+					} else if ( object.name == "hint" ) {
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											5 * this.setting_minblocksize ,
+											5 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );
+					} 
+
+
+				}	
+			}
+		}
+
+
+
+		// Draw foreground objects
+		if ( this.foregroundobjects ) {
+
+			for ( var i = 0 ; i < this.foregroundobjects.length ; i++ ) {
+				
+				object = this.foregroundobjects[i];
+
+				// Only draw visible object. The camera is always half screen left and top of player so
+				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
+
+				
+					if ( object.name == "movingplatform") {
+
+						var platform_tilewidth  = ( object.width / this.setting_minblocksize ) >> 0;
+						var platform_tileheight = ( object.height / this.setting_minblocksize ) >> 0; 
+
+						for ( var j = 0 ; j < platform_tilewidth ; j++ ) { 
+							
+							for ( var k = 0 ; k < platform_tileheight ; k++ ) {	
+
+								var srcx = 3;
+								if ( platform_tilewidth > 1 ) {
+									srcx = ( j == 0 ) ? 2 : ( j == platform_tilewidth - 1  )? 4 : 3;
+								}
+								var srcy = 6;
+								if ( platform_tileheight > 1 ) {
+									srcy = ( k == 0 ) ? 6 : 7;
+								}
+
+								this.ctxt.drawImage( this.sprite_objecttiles, 
+												srcx * this.setting_minblocksize ,
+												srcy * this.setting_minblocksize ,
+												this.setting_minblocksize,
+												this.setting_minblocksize,
+									( object.x + j * this.setting_minblocksize ) - this.camera.x , 
+									( object.y + k * this.setting_minblocksize ) - this.camera.y , 
+										this.setting_minblocksize, 
+										this.setting_minblocksize );	
+
+							}	
+						}
+					
+					} else if ( object.name == "trapdoor" ) {
+
+						var trapdoor_state = parseInt( object.properties.state );
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+										2 * this.setting_minblocksize ,
+										(3 - trapdoor_state ) * this.setting_minblocksize ,
+										2 * this.setting_minblocksize,
+										1 * this.setting_minblocksize,
+							object.x - this.camera.x , 
+							object.y - this.camera.y, 
+								2 * this.setting_minblocksize, 
+								1 * this.setting_minblocksize );	
+				
+
+					} else if ( object.name == "zdoor") {
+
+						var zdoor_state = parseInt( object.properties.state );
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+										( 4 + zdoor_state * 2 ) * this.setting_minblocksize ,
+										0 ,
+										2 * this.setting_minblocksize,
+										3 * this.setting_minblocksize,
+							object.x - this.camera.x , 
+							object.y - this.camera.y, 
+								2 * this.setting_minblocksize, 
+								3 * this.setting_minblocksize );	
+
+					}
+
+
+
+				}	
+			}
+		}	
+
+		if ( this.player.death == 0 ) {
+
+			// Draw Main Characters
+			this.ctxt.drawImage( this.sprite_mainchar["body"] , 
+								   		this.player.width  * this.player.framex , 
+								   		this.player.height * this.player.framey , 
+								   		this.player.width , 
+								   		this.player.height , 
+								   this.player.x - this.camera.x, 
+								   this.player.y - this.camera.y, 
+								   this.player.width , 
+								   this.player.height );
+			
+			this.ctxt.drawImage( this.sprite_mainchar["head"] , 
+								   		40 * this.player.framex_head,
+								   		40 * this.player.framey_head,
+								   		40,
+								   		40,
+								   	this.player.x - this.camera.x + this.player.x_head ,
+								   	this.player.y - this.camera.y + this.player.y_head ,
+								   	40,
+								   	40 );
+
+		}
+
+		// Draw monster
+		for ( var i = 0 ; i < this.monsters.length ; i++ ) {
+			
+			var object = this.monsters[i];
+
+
+			// Only draw visible object. The camera is always half screen left and top of player so
+			if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+				 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
+
+				if ( object.name == "monster_boss" ) {
+
+					this.ctxt.drawImage( this.sprite_monster, 
+										0   + ( object.framex ) * ( 4 * this.setting_minblocksize ) ,
+										400 + ( object.framey ) * ( 5 * this.setting_minblocksize ) ,
+										4 * this.setting_minblocksize,
+										5 * this.setting_minblocksize,
+							  object.x - 44 - this.camera.x , 
+							  object.y - 40 - this.camera.y , 
+								4 * this.setting_minblocksize, 
+								5 * this.setting_minblocksize );	
+
+					//head
+					this.ctxt.drawImage( this.sprite_monster, 
+										240   + ( object.head_framex ) * ( 2 * this.setting_minblocksize ) ,
+										160   + ( object.head_framey ) * ( 2 * this.setting_minblocksize ) ,
+										2 * this.setting_minblocksize,
+										2 * this.setting_minblocksize,
+							  object.x +  0 + object.head_offx  - this.camera.x, 
+							  object.y - 50 + object.head_offy  - this.camera.y, 
+								2 * this.setting_minblocksize, 
+								2 * this.setting_minblocksize );	
+
+
+				} else {
+				
+					this.ctxt.drawImage( this.sprite_monster, 
+										( object.framex ) * ( 2 * this.setting_minblocksize ) ,
+										( object.framey ) * ( 2 * this.setting_minblocksize ) ,
+										2 * this.setting_minblocksize,
+										2 * this.setting_minblocksize,
+							  object.x - this.camera.x , 
+							  object.y + 3 - this.camera.y, 
+								2 * this.setting_minblocksize, 
+								2 * this.setting_minblocksize );	
+
+					
+				}
+			}	
+		}
+
+
+
+		// Draw Bullets 
+		for ( var i = 0 ; i < this.setting_maxbullet ; i++ ) {
+				
+			var bullet = this.player.bullets[i];
+
+			if ( bullet.active == true ) {
+				
+				var basesize = 14;
+				var upgraded_size = basesize + ( bullet.power - 1 ) * 3 ;
+
+				this.ctxt.drawImage( this.sprite_dogecoin, 
+										bullet.owner * 64,
+										0,
+										64,
+										64,
+							bullet.x - this.camera.x - upgraded_size/2, 
+							bullet.y - this.camera.y - upgraded_size/2, 
+								upgraded_size, 
+								upgraded_size );
+
+			} 
+		}
+
+		// Draw particles 
+		for ( var i = 0; i < this.setting_maxparticle ; i++ ) {
+
+			var particle = this.particles[i];
+			if ( particle.active > 0 ) {
+
+				this.ctxt.drawImage( this.sprite_particle, 
+										particle.framex * ( particle.size_x * this.setting_minblocksize ),
+										particle.framey * this.setting_minblocksize,
+										particle.size_x * this.setting_minblocksize,
+										particle.size_y * this.setting_minblocksize,
+							particle.x - this.camera.x - ( particle.size_x * this.setting_minblocksize )/2, 
+							particle.y - this.camera.y - ( particle.size_y * this.setting_minblocksize )/2, 
+								particle.size_x * this.setting_minblocksize,
+								particle.size_y * this.setting_minblocksize);	
+
+
+			}
+		}
+
+
+
+		
+		// Draw inventory
+		for ( var i = 0 ; i < this.player.inventory.length ; i++ ){
+
+			object = this.player.inventory[i];
+			if ( object.name == "key" ) {
+
+				this.ctxt.drawImage( this.sprite_bgtiles, 
+									4 * this.setting_minblocksize ,
+									8 * this.setting_minblocksize,
+									this.setting_minblocksize,
+									this.setting_minblocksize,
+						i * ( this.setting_minblocksize + 10 ) + 10,
+						this.canvas.height - ( this.setting_minblocksize + 10 ),
+							this.setting_minblocksize, 
+							this.setting_minblocksize );
+
+
+				var key_type = parseInt( object.type );
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											(key_type + 1 ) * this.setting_minblocksize ,
+											4 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								i * ( this.setting_minblocksize + 10 ) + 10 + 5,
+								this.canvas.height - ( this.setting_minblocksize + 10 ) + 5,
+									this.setting_minblocksize - 10, 
+									this.setting_minblocksize - 10);	
+					
+			}
+		}
+
+
+		// Draw Life and HP UI
+		if ( this.player.life >= 0 ) {
+
+			for ( var i = 0 ; i < this.player.life ; i++ ) {
+
+				this.ctxt.drawImage( this.sprite_mainchar["head"] , 
+								   		0,
+								   		0,
+								   		40,
+								   		40,
+								   	10 + 40 * i ,
+								   	10 ,
+								   	40,
+								   	40 );	
+			}
+
+			var lifebarsize = this.player.hp * 68 / this.setting_hp_per_life  >> 0
+			if ( lifebarsize < 1 ) {
+				lifebarsize = 1 
+			}
+			
+			this.ctxt.drawImage( this.sprite_objecttiles, 
+									320,
+									0,
+									80,
+									40,
+								20,
+								50,
+								80,
+								40 );
+			
+
+			this.ctxt.drawImage( this.sprite_objecttiles, 
+										320,
+										40,
+											lifebarsize,
+											20,
+								26,
+								56,
+									lifebarsize,
+									20 );
+
+		}
+
+		// Draw message
+		if ( this.displaytick > 0 ) {
+
+			var alpha;
+			if ( this.displaytick > 100 ) {
+				alpha = 1.0;
+			} else {
+				alpha = ( this.displaytick / 100 ).toFixed(2);
+			}
+			this.ctxt.fillStyle =  "rgba( 255 , 255 ,255, " + alpha +")";
+      		this.ctxt.fillText( this.displaymsg , this.canvas.width /2 - this.displaymsg.length * 10 / 2, this.canvas.height - 13 );
+			
+		}
+
+
+		// Draw teleport transition effect
+		if ( this.teleporting > 0 ) {
+			
+			this.ctxt.beginPath()
+			this.ctxt.rect( 0 , 0, this.canvas.width, this.canvas.height );
+
+			var alpha;
+			if ( this.teleporting > 10 ) {
+				alpha = ( 20 - this.teleporting ) / 10 ;
+			} else {
+				alpha = this.teleporting / 10 ;
+			}
+
+      		this.ctxt.fillStyle =  "rgba(0, 0, 0, " +  alpha + ")";
+      		this.ctxt.fill();
+      		this.ctxt.strokeStyle = 'black';
+      		this.ctxt.stroke();
+      		this.ctxt.closePath();
+      	}
+
+      	if ( this.player.life < 0 ) {
+
+      		this.ctxt.fillStyle = "#ffffff";
+      		var msg = "GAME OVER. Press P to restart.";
+			this.ctxt.fillText( msg , this.canvas.width /2 - msg.length * 10 / 2, this.canvas.height/2 - 6 );
+			
+
+      	}
+
+
+      	// Draw Keypad 
+      	//if ( this.ismobile == 1 ) {
+
+      		for ( var i = 0 ; i < this.keypads.length ; i++ ) {
+      			
+      			object = this.keypads[i];	
+      			this.ctxt.drawImage( this.sprite_keypad, 
+										object.framex * this.setting_minblocksize * 2,
+										object.framey * this.setting_minblocksize * 2,	
+										this.setting_minblocksize * 2,
+										this.setting_minblocksize * 2,
+								object.x ,
+								object.y ,
+									this.setting_minblocksize * 2, 
+									this.setting_minblocksize * 2);
+
+
+      		}
+      	//}
+
+		this.debug();
+
+	}
+
+
+
+
+
+
+
+
+	//-------------------------------------------------------------------------------------
+	this.on_keyDown = function( evt ) {
+
+		var keyCode = evt.which?evt.which:evt.keyCode; 
+			
+		keyCode = this.wasd_to_arrow(keyCode);
+		
+
+
+		if ( keyCode >= 37 && keyCode <= 40 ) {
+			this.player.control_direction[ keyCode - 37 ] = 1 ;
+
+
+		} else if ( keyCode == 90 ) {
+
+			if ( this.player.firing == 0  && this.player.in_pain == 0) {
+				
+				this.player.firing = 1;
+			}
+		
+		} else if ( keyCode == 88 ) {
+			this.doaction();
+		}
+
+
+	}
+
+
+	//-------------------------------------------------------------------------------------
+	this.on_keyUp = function( evt ) {
+
+		var keyCode = evt.which?evt.which:evt.keyCode; 
+		keyCode = this.wasd_to_arrow(keyCode);
+		
+
+		if ( keyCode >= 37 && keyCode <= 40 ) {
+			this.player.control_direction[ keyCode - 37 ] = 0 ;
+		
+		} else if ( keyCode == 80 ) {
+
+			if ( this.player.life < 0 ) {
+				this.reinit_game(); 
+			}
+		}
+
+	}
+
+		//------------------
+	this.on_orientationchange = function( evt ) {
+	}
+
+	
+
+	//-----------
+	this.on_touchstart = function( touch ) {
+
+		for ( var i = 0 ; i < this.keypads.length ; i++ ) {
+			var keypad = this.keypads[i];
+			if ( touch.pageX >= keypad.x && touch.pageX <= keypad.x + 2 * this.setting_minblocksize && 
+				 touch.pageY >= keypad.y && touch.pageY <= keypad.y + 2 * this.setting_minblocksize) {
+
+				var keyCode = keypad.keycode;
+				if ( keyCode >= 37 && keyCode <= 40 ) {
+					this.player.control_direction[ keyCode - 37 ] = 1 ;
+				
+				} else if ( keyCode == 3738 ) {
+				
+					this.player.control_direction[ 0 ] = 1;
+					this.player.control_direction[ 1 ] = 1;
+
+				} else if ( keyCode == 3839 ) {
+
+					this.player.control_direction[ 2 ] = 1;
+					this.player.control_direction[ 1 ] = 1;
+
+				} else if ( keyCode == 90 ) {
+
+					if ( this.player.firing == 0  && this.player.in_pain == 0) {
+						
+						this.player.firing = 1;
+					}
+				
+				} else if ( keyCode == 88 ) {
+					this.doaction();
+				}
+
+			} 
+		}
+	}
+
+
+	//-------
+	this.on_touchend = function(touch ) {
+
+		for ( i = 0 ; i < 4; i++ ) {
+			this.player.control_direction[ i ] = 0 ;
+		}	
+	}	
+
+
+
+	//-------------------------------------------------------------------------------------
+	this.on_load_completed = function() {
+
+		var dw = this;
+		this.resource_loaded += 1;
+		
+		if ( this.resource_loaded == this.total_resource ) {
+			
+			console.log("Loading Completed");
+			this.reinit_game();
+			
+			//window.requestAnimationFrame( function() {
+			//	dw.on_timer();
+			//});
+
+			setTimeout( function() {
+				dw.on_timer();
+			}, this.timerinterval );
+			
+			if ( typeof this.mp3bgmusic != 'undefined' ) {
+				this.mp3bgmusic.play();	
+			}
+			
+
+		} else {
+			this.update_loading_screen();
+		}
+	}
+
+	//----------
+	this.on_timer = function() {
+
+		var dw = this;
+		
+		
+
+			if ( this.player.death == 0 ) {
+			
+				this.player_falling();
+				this.player_crouch();
+				this.player_inpain();
+				this.player_jump();
+				this.player_walkleft();
+				this.player_walkright();
+				this.player_idle();
+				this.player.framey_head = this.player.direction;
+				this.player.framex_head = 0;
+				if ( this.player.direction == 1 ) {
+					this.player.framex_head = 3;
+				}
+				this.player_fire();
+				this.player_pickup_objects();
+				this.player_collide_with_trigger();
+
+			} else {
+				this.animate_player_death();
+			}
+
+
+			this.spawn_monsters();
+			this.animate_monsters();
+			this.animate_bullets();
+			this.animate_particles();
+			this.animate_transition();
+			this.animate_foregroundobjects();
+			this.animate_backgroundobjects();
+
+			
+			this.camera.x = this.player.x - this.canvas.width / 2  + this.player.width / 2 ;
+			
+			var camera_target_y = this.player.y - this.canvas.height / 2 + this.player.height / 2 ;
+			this.camera.y +=  (( camera_target_y - this.camera.y ) / 10 >> 0 ); 
+			
+
+			this.player.tick += 1;
+			this.player.tick2 += 1;
+			
+			if ( this.displaytick > 0 ) {
+				this.displaytick -= 1;
+			}
+
+
+			if ( this.particle_queue.length > 0 ) {
+
+				this.particle_queue_tick += 1;
+				if ( this.particle_queue_tick > 1 ) {
+
+					var p = this.particle_queue.shift()
+					this.fireparticle( p[0] , p[1] , p[2] , p[3], p[4] , p[5] , p[6] ) ;
+					
+					
+
+					this.particle_queue_tick = 0;	
+				}
+			}
+
+			this.on_draw();
+
+		
+
+		
+		//window.requestAnimationFrame( function() {
+		//	dw.on_timer();
+		//});
+		setTimeout( function() {
+			dw.on_timer();
+		}, this.timerinterval );
+
+			
+			
+
+		
+		
+
+	}
+
+
+
+
+
+
+	//---------------------------
+	this.monster_to_die = function( monster , index ) {
+
+		if ( monster.name == "monster_boss" ) {
+
+			for ( i = 0 ; i < 10 ; i++ ) {
+				
+				this.fireparticle( monster.x + this.rand(100)  , monster.y - 40 + i * 20 , 4 , 2 , 2 , 7 , 4 );
+				this.fireparticle( monster.x + this.rand(100)  , monster.y - 40 + i * 20 , 4 , 2 , 2 , 7 , 4 );
+			}
+			for ( i = 0 ; i < 10 ; i++ ) {
+				
+				this.particle_queue.push( [ monster.x - 20 + this.rand(100) , monster.y - 40 + i * 20, 6,  3, 3, 7, 3 ] );
+			}
+					
+
+			this.sndBoom.play();
+			this.sndBoom2.play();
+			// Reward key id 12
+			if ( monster.rewardkeyid ) {
+
+				var key = {};
+				key.name = "key"
+				key.x = monster.x;
+				key.y = monster.y;
+				key.type = 3;
+				key.properties = {}
+				key.properties.id = monster.rewardkeyid;
+				this.pickables.push(key );
+			}	
+
+		} else {
+			this.fireparticle( monster.x + 40  , monster.y + 40 , 4 , 2 , 2 , 7 , 4 );
+			
+			if ( this.sndSplash.paused ) {
+				this.sndSplash.play();
+			} else {
+				this.sndSplash2.play();
+			}
+
+		}
+
+		
+		// Clear the monster
+		this.monsters.splice( index , 1 );
+	} 
+
+
 
 
 	//------------
@@ -2823,15 +3118,10 @@ function Dogewarrior() {
 	//-----------------------------------
 	this.reinit_game = function() {
 
-		this.player.x = 500;
-		this.player.y = 3640;
-
-		//this.player.x = 108 * 40;
-		//this.player.y = 111 * 40;
+		
 
 	
-		this.player.restart_x = this.player.x;
-		this.player.restart_y = this.player.y;
+		
 		this.player.death = 0;
 		this.player.framex = 0;
 		this.player.framey = 0;
@@ -2846,8 +3136,7 @@ function Dogewarrior() {
 		this.player.hp 		= this.setting_hp_per_life;
 		this.player.life 	= this.setting_initial_life_count;	
 
-		this.camera.x = 0;
-		this.camera.y = 3400;	
+		
 		
 		this.player.framex_head = 0;
 		this.player.framey_head = 0;
@@ -2876,8 +3165,16 @@ function Dogewarrior() {
 		// Make a copy of all expendable items
 		this.triggers  = [];
 		for ( var i = 0 ; i <  this.map.layers[this.triggerlayer_id]["objects"].length ; i++ ) {
-			this.triggers.push( this.clone( this.map.layers[this.triggerlayer_id]["objects"][i] ) );
+			
+			var obj =  this.clone( this.map.layers[this.triggerlayer_id]["objects"][i] );
+			this.triggers.push( obj );
+
+			if ( obj.properties.isLevelStartPosition == 1 ) {
+				this.player.restart_x = obj.x ;
+				this.player.restart_y = obj.y ;
+			}
 		}
+
 
 		this.spawners = [];
 		for ( var i = 0 ; i <  this.map.layers[this.monsterobjectlayer_id]["objects"].length ; i++ ) {
@@ -2904,7 +3201,60 @@ function Dogewarrior() {
 
 		this.displaymsg = "";
 		this.displaytick = 0;
+
+
+		this.player.x = this.player.restart_x;
+		this.player.y = this.player.restart_y;
+
+		this.camera.x = this.player.x - this.canvas.width/2;
+		this.camera.y = this.player.y - this.canvas.height/2;
+
+
+		//this.player.x = 108 * 40;
+		//this.player.y = 111 * 40;
+
+		this.auto_randomize_puzzles();
+
 	}	
+
+
+	//--------------------------------------
+	this.resizewindow = function() {
+
+		if ( this.fixedsize ) {
+
+			this.canvas.width  = 1024 ;
+	    	this.canvas.height = 600 ;
+	    	
+
+		} else {
+    	
+	    	this.canvas.width = window.innerWidth ;
+	    	this.canvas.height = window.innerHeight ;
+	    	
+	    	if ( this.canvas.width > 1200 ) {
+	    		this.canvas.width = 1200;
+	    		this.canvas.height = 600;
+			}
+		}
+
+    	if ( this.ismobile == 1 ) {
+    	
+    		//this.initKeypad();
+    	
+    		
+    	}
+    }
+	
+
+
+	//-----
+	this.shuffle_array = function(o) {
+
+		for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    	return o;
+		
+	}
 
 
 	//----------------------------------
@@ -3036,15 +3386,39 @@ function Dogewarrior() {
 		this.ctxt.fillText( msg , this.canvas.width / 2 - msg.length * 6 / 2 , this.canvas.height /2 );
 	}
 
+
+
+
+	//--------
+	this.wasd_to_arrow = function( keyCode ) {
+
+		var newKeyCode = keyCode ;
+
+		
+		if ( keyCode == 0x61 - 0x20 ) { newKeyCode = 37; }
+		if ( keyCode == 0x64 - 0x20 ) { newKeyCode = 39; }
+		if ( keyCode == 0x77 - 0x20 ) { newKeyCode = 38; }
+		if ( keyCode == 0x73 - 0x20 ) { newKeyCode = 40; }
+		if ( keyCode == 190 ) { newKeyCode = 90 ; }
+		if ( keyCode == 191 ) { newKeyCode = 88 ; }
+		
+			
+		return newKeyCode;
+	}
+
+
 	
 }
 
 
 //---------------------------------------
-function main() {
+function main(level) {
 
 	dw = new Dogewarrior();
-	dw.init();
+	document.getElementById('wowversion').innerHTML = dw.version;
+	dw.init(level);
+
 	 
 }
+
 
