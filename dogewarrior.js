@@ -7,7 +7,7 @@
 
 function Dogewarrior() {
 
-	this.version 				= 1.4;
+	this.version 				= 1.5;
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -42,7 +42,7 @@ function Dogewarrior() {
 	this.setting_initial_life_count    = 3;
 	this.setting_hp_per_life 		   = 12;
 	this.setting_fallinjury 		   = 4;
-
+	this.setting_maxlife 				= 10;
 		
 
 	this.sprite_mainchar 			= {};
@@ -1211,6 +1211,9 @@ function Dogewarrior() {
 		this.sndMonsterFire = new Audio("sounds/monsterfire.wav");
 		this.sndSurprise 	= new Audio("sounds/surprise.wav");
 
+		this.sndLifeup 		= new Audio("sounds/lifeup.wav");
+		this.sndHeal 		= new Audio("sounds/heal.wav");
+
 
 
 
@@ -1817,7 +1820,35 @@ function Dogewarrior() {
 								object.x - this.camera.x , 
 								object.y - this.camera.y, 
 									this.setting_minblocksize, 
-									this.setting_minblocksize );	
+									this.setting_minblocksize );
+
+
+					} else if ( object.name == "lifeup") {
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											9 * this.setting_minblocksize ,
+											2 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );
+
+					} else if ( object.name == "hpup") {
+
+						this.ctxt.drawImage( this.sprite_objecttiles, 
+											8 * this.setting_minblocksize ,
+											3 * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x - this.camera.x , 
+								object.y - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );
+	
+
+
 					
 					} else if ( object.name == "hint" ) {
 
@@ -2938,6 +2969,7 @@ function Dogewarrior() {
 				object = this.pickables[i];
 				var diffx = ( object.x + this.setting_minblocksize / 2 ) - ( this.player.x + this.player.width / 2 );
 				var diffy = ( object.y + this.setting_minblocksize / 2 ) - ( this.player.y + this.player.height / 2 ) ;
+				var hascustomsound = 0;
 
 				if ( diffx * diffx + diffy * diffy < this.setting_minblocksize * this.setting_minblocksize ) {
 
@@ -2955,6 +2987,27 @@ function Dogewarrior() {
 						if ( this.player.coinpower < 10 ) {
 							this.player.coinpower += 1;
 						}
+
+					} else if ( object.name == "lifeup" ) {
+
+						if ( this.player.life < this.setting_maxlife ) {
+							this.player.life += 1;
+							this.sndLifeup.play();
+						}
+						hascustomsound = 1;
+						
+
+					} else if ( object.name == "hpup" ) {
+
+						if ( this.player.hp < this.setting_hp_per_life ) {
+							this.player.hp += 6;
+							if ( this.player.hp > this.setting_hp_per_life ) {
+								this.player.hp = this.setting_hp_per_life;
+							}
+						}
+						this.sndHeal.play();
+						hascustomsound = 1;
+
 					
 					} else if ( object.name == "hint" ) {
 
@@ -2964,7 +3017,10 @@ function Dogewarrior() {
 
 
 					this.pickables.splice( i , 1 );
-					this.sndPickup.play();
+
+					if ( hascustomsound == 0 ) {
+						this.sndPickup.play();
+					}
 					this.fireparticle( object.x + 10 , object.y + 10 , 1 , 1 , 1 , 7 ,  1 );
 					
 				}

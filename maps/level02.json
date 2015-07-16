@@ -1222,17 +1222,18 @@
                  "name":"monster_grounded",
                  "properties":
                     {
-                     "direction":"0",
+                     "direction":"2",
                      "hp":"1",
                      "max_x":"auto",
                      "min_x":"auto",
                      "spawncount":"3",
-                     "spawninterval":"120"
+                     "spawninterval":"120",
+                     "triggerid":"6"
                     },
                  "type":"cat",
                  "visible":true,
                  "width":80,
-                 "x":2240,
+                 "x":1880,
                  "y":6280
                 }],
          "opacity":1,
@@ -1323,6 +1324,19 @@
                  "width":80,
                  "x":1040,
                  "y":5600
+                }, 
+                {
+                 "height":160,
+                 "name":"trigger",
+                 "properties":
+                    {
+                     "id":"6"
+                    },
+                 "type":"monster",
+                 "visible":true,
+                 "width":160,
+                 "x":2240,
+                 "y":6200
                 }],
          "opacity":1,
          "type":"objectgroup",
