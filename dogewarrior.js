@@ -7,7 +7,7 @@
 
 function Dogewarrior() {
 
-	this.version 				= 1.5;
+	this.version 				= 1.6;
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -171,9 +171,6 @@ function Dogewarrior() {
 				
 				object = this.foregroundobjects[i];
 
-			
-
-
 				// Only draw visible object. The camera is always half screen left and top of player so
 				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
 					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
@@ -199,7 +196,22 @@ function Dogewarrior() {
 								object.y += dir_y;
 								blockismoving = 1;
 							}
+						} else if ( object.type == "inandout" ) {
 
+
+							if ( typeof object.tick == 'undefined' ) {
+								object.tick = 0;
+							}
+							object.tick += 1;
+							if ( object.tick > parseInt( object.properties.interval ) ) {
+								object.properties.state = ( parseInt( object.properties.state ) + 1 ) % 3;
+								object.tick = 0;
+								
+								if ( this.rand(15) == 0 ) {
+									this.sndMovingwall.play();
+								} 
+
+							}
 
 						} else {
 
@@ -1388,7 +1400,7 @@ function Dogewarrior() {
 
 				// Tiles
 				this.sprite_bgtiles = new Image();
-				this.sprite_bgtiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image );
+				this.sprite_bgtiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image  + "?");
 				this.sprite_bgtiles.addEventListener('load', function() {
 					dw.on_load_completed();
 				},false);
@@ -1397,7 +1409,7 @@ function Dogewarrior() {
 
 				// Objects
 				this.sprite_objecttiles = new Image();
-				this.sprite_objecttiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image );
+				this.sprite_objecttiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image + "?");
 				this.sprite_objecttiles.addEventListener('load', function() {
 					dw.on_load_completed();
 				},false);
@@ -1406,7 +1418,7 @@ function Dogewarrior() {
 
 				// Monsters
 				this.sprite_monster = new Image();
-				this.sprite_monster.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image );
+				this.sprite_monster.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image + "?");
 				this.sprite_objecttiles.addEventListener('load', function() {
 					dw.on_load_completed();
 				},false);
@@ -1766,6 +1778,31 @@ function Dogewarrior() {
 						}
 
 						
+					} else if ( object.name == "deathtrap" ) {
+
+						var objwidth 	= object.width 	/ this.setting_minblocksize;
+						var objheight 	= object.height / this.setting_minblocksize;
+						
+						if ( object.type == "spike" ) {
+
+							for ( j = 0 ; j < objwidth ; j++ ) {
+
+								var srcx,srcy;
+								srcy = 10;
+								srcx = (  (j + 2 ) % 4  ) + 3 ;
+
+								this.ctxt.drawImage( this.sprite_objecttiles, 
+											srcx * this.setting_minblocksize,
+											srcy * this.setting_minblocksize,
+											this.setting_minblocksize,
+											this.setting_minblocksize,
+								object.x + (this.setting_minblocksize * j) - this.camera.x , 
+								object.y + (this.setting_minblocksize * 0) - this.camera.y, 
+									this.setting_minblocksize, 
+									this.setting_minblocksize );	
+
+							}
+						}	
 					}
 				}	
 			}
@@ -1892,13 +1929,28 @@ function Dogewarrior() {
 							for ( var k = 0 ; k < platform_tileheight ; k++ ) {	
 
 								var srcx = 3;
+								var srcy = 6;
 								if ( platform_tilewidth > 1 ) {
 									srcx = ( j == 0 ) ? 2 : ( j == platform_tilewidth - 1  )? 4 : 3;
 								}
-								var srcy = 6;
-								if ( platform_tileheight > 1 ) {
-									srcy = ( k == 0 ) ? 6 : 7;
-								}
+
+								if ( object.type == "inandout" ) {
+
+									var state = parseInt( object.properties.state ); 
+									if ( state == 0 ) {
+										srcy = 13;
+									} else if ( state == 2 ) {
+										srcy = 12;
+									}
+
+								} else {
+
+									
+									if ( platform_tileheight > 1 ) {
+										srcy = ( k == 0 ) ? 6 : 7;
+									}
+								}		
+
 
 								this.ctxt.drawImage( this.sprite_objecttiles, 
 												srcx * this.setting_minblocksize ,
@@ -2246,6 +2298,16 @@ function Dogewarrior() {
 				this.player.firing = 1;
 			}
 		
+		} else if ( keyCode == 77 ) {
+
+			if ( typeof this.mp3bgmusic != 'undefined' ) {
+				if ( this.mp3bgmusic.paused ) {
+					this.mp3bgmusic.play();
+				} else {
+					this.mp3bgmusic.pause();
+				}
+			}
+
 		} else if ( keyCode == 88 ) {
 			this.doaction();
 		}
@@ -2380,6 +2442,8 @@ function Dogewarrior() {
 				this.player_fire();
 				this.player_pickup_objects();
 				this.player_collide_with_trigger();
+				this.player_collide_with_trap();
+
 
 			} else {
 				this.animate_player_death();
@@ -2496,6 +2560,32 @@ function Dogewarrior() {
 	} 
 
 
+	//-------
+	this.player_collide_with_trap = function() {
+
+		if ( this.backgroundobjects ) {
+
+			for ( var i = 0 ; i < this.backgroundobjects.length ; i++)  {
+
+				var object = this.backgroundobjects[i];
+
+					if ( this.player.x + 60 >= object.x && this.player.x + 60 <= object.x + object.width && 
+					 	 this.player.y + 40 >= object.y - this.setting_minblocksize * 1.6 && this.player.y + 40 <= object.y + object.height + 20 ) {
+
+						if ( object.name == "deathtrap" && object.type == "spike" ) {
+
+							if (  this.player.falling > 0 && this.player.upwardspeed > 0.0 &&  parseInt( object.properties.state ) == 1  ) {
+								
+								this.player_get_hurt(99);
+								
+							}
+						}
+
+				}
+				
+			}
+		}
+	}
 
 
 	//------------
@@ -2505,7 +2595,7 @@ function Dogewarrior() {
 
 			for ( var i = this.triggers.length - 1 ; i >= 0 ; i-- ) {
 
-				object = this.triggers[i];
+				var object = this.triggers[i];
 
 				if ( this.player.x >= object.x && this.player.x <= object.x + object.width && 
 					 this.player.y >= object.y && this.player.y <= object.y + object.height ) {
@@ -2619,12 +2709,13 @@ function Dogewarrior() {
 					if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
 						 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
-						if   ( 	  object.name == "movingplatform" || 
-							 	( object.name == "trapdoor" && parseInt( object.properties.state ) == 1 ) || 
+						if   ( 	( object.name == "movingplatform" && object.type != "inandout" )  || 
+								( object.name == "movingplatform" && object.type == "inandout" && parseInt( object.properties.state ) > 0 )  || 
+								( object.name == "trapdoor" && parseInt( object.properties.state ) == 1 ) || 
 							    ( object.name == "zdoor"    && parseInt( object.properties.state ) == 1 ) 
 							 ) {
 
-
+							
 							if ( pof_x >= object.x  && pof_x <= object.x + object.width  && 
 								 pof_y >= object.y  && pof_y <= object.y + this.setting_minblocksize  ) {
 
