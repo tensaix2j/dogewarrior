@@ -7,7 +7,7 @@
 
 function Dogewarrior() {
 
-	this.version 				= 1.6;
+	this.version 				= 1.7;
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -15,7 +15,7 @@ function Dogewarrior() {
 
 	
 	this.ctxt;
-	this.timerinterval   		= 16;
+	this.timerinterval   		= 15;
 	this.player 				= {};
 	this.camera 				= {};
 
@@ -949,6 +949,11 @@ function Dogewarrior() {
 											} else if ( object_j.type == "filler" ) {
 
 												var moved = this.fillpuzzle( object_j , switchval );
+											
+											} else if ( object_j.type == "rubik" ) {
+
+												var moved = this.rotatepuzzle( object_j , switchval );
+
 											}
 
 
@@ -1400,7 +1405,7 @@ function Dogewarrior() {
 
 				// Tiles
 				this.sprite_bgtiles = new Image();
-				this.sprite_bgtiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image  + "?");
+				this.sprite_bgtiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image  + "?k="+ this.rand(100));
 				this.sprite_bgtiles.addEventListener('load', function() {
 					dw.on_load_completed();
 				},false);
@@ -1409,7 +1414,7 @@ function Dogewarrior() {
 
 				// Objects
 				this.sprite_objecttiles = new Image();
-				this.sprite_objecttiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image + "?");
+				this.sprite_objecttiles.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image + "?k=" + this.rand(100));
 				this.sprite_objecttiles.addEventListener('load', function() {
 					dw.on_load_completed();
 				},false);
@@ -1418,7 +1423,7 @@ function Dogewarrior() {
 
 				// Monsters
 				this.sprite_monster = new Image();
-				this.sprite_monster.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image + "?");
+				this.sprite_monster.src = imagePath + "/" + this.baseName( this.map.tilesets[i].image + "?"+ this.rand(100));
 				this.sprite_objecttiles.addEventListener('load', function() {
 					dw.on_load_completed();
 				},false);
@@ -1589,6 +1594,103 @@ function Dogewarrior() {
 	}
 
 
+	//-----
+	this.rotatepuzzle = function( object_j , rotateval ) {
+
+		if ( rotateval == 1 ) {
+
+			var tmp = object_j.state[0];
+			object_j.state[0] = object_j.state[1] ;
+			object_j.state[1] = object_j.state[3] ;
+			object_j.state[3] = object_j.state[2] ;
+			object_j.state[2] = tmp;
+
+		} else if ( rotateval == 2 ) {
+			var tmp = object_j.state[0];
+			object_j.state[0] = object_j.state[2] ;
+			object_j.state[2] = object_j.state[3] ;
+			object_j.state[3] = object_j.state[1] ;
+			object_j.state[1] = tmp;
+
+		} else if ( rotateval == 3 ) {
+			var tmp = object_j.state[4];
+			object_j.state[4] = object_j.state[6] ;
+			object_j.state[6] = object_j.state[7] ;
+			object_j.state[7] = object_j.state[5] ;
+			object_j.state[5] = tmp;
+		
+		} else if ( rotateval == 4 ) {
+			var tmp = object_j.state[4];
+			object_j.state[4] = object_j.state[6] ;
+			object_j.state[6] = object_j.state[7] ;
+			object_j.state[7] = object_j.state[5] ;
+			object_j.state[5] = tmp;
+
+		} else if ( rotateval == 5 ) {
+			var tmp = object_j.state[1];
+			object_j.state[1] = object_j.state[5] ;
+			object_j.state[5] = object_j.state[7] ;
+			object_j.state[7] = object_j.state[3] ;
+			object_j.state[3] = tmp;
+
+		} else if ( rotateval == 6 ) {
+			var tmp = object_j.state[1];
+			object_j.state[1] = object_j.state[3] ;
+			object_j.state[3] = object_j.state[7] ;
+			object_j.state[7] = object_j.state[5] ;
+			object_j.state[5] = tmp;
+	
+		} else if ( rotateval == 7 ) {
+			var tmp = object_j.state[2];
+			object_j.state[2] = object_j.state[3] ;
+			object_j.state[3] = object_j.state[7] ;
+			object_j.state[7] = object_j.state[6] ;
+			object_j.state[6] = tmp;
+	
+		} else if ( rotateval == 8 ) {
+			var tmp = object_j.state[2];
+			object_j.state[2] = object_j.state[6] ;
+			object_j.state[6] = object_j.state[7] ;
+			object_j.state[7] = object_j.state[3] ;
+			object_j.state[3] = tmp;
+		
+		} else if ( rotateval == 9 ) {
+			var tmp = object_j.state[0];
+			object_j.state[0] = object_j.state[1] ;
+			object_j.state[1] = object_j.state[5] ;
+			object_j.state[5] = object_j.state[4] ;
+			object_j.state[4] = tmp;
+	
+		} else if ( rotateval == 10 ) {
+			var tmp = object_j.state[0];
+			object_j.state[0] = object_j.state[4] ;
+			object_j.state[4] = object_j.state[5] ;
+			object_j.state[5] = object_j.state[1] ;
+			object_j.state[1] = tmp;
+	
+
+		} else if ( rotateval == 11 ) {
+			var tmp = object_j.state[0];
+			object_j.state[0] = object_j.state[4] ;
+			object_j.state[4] = object_j.state[6] ;
+			object_j.state[6] = object_j.state[2] ;
+			object_j.state[2] = tmp;
+	
+		} else if ( rotateval == 12 ) {
+			var tmp = object_j.state[0];
+			object_j.state[0] = object_j.state[2] ;
+			object_j.state[2] = object_j.state[6] ;
+			object_j.state[6] = object_j.state[4] ;
+			object_j.state[4] = tmp;
+
+		}
+
+
+
+		return 1;
+	}
+
+
 	///----------
 	this.movepuzzle = function( object_j , direction ) {
 
@@ -1746,34 +1848,76 @@ function Dogewarrior() {
 					
 					} else if ( object.name == "puzzle" ) {
 
-						var objwidth 	= object.width 	/ this.setting_minblocksize;
-						var objheight 	= object.height / this.setting_minblocksize;
-						
+						if ( object.type == "rubik" ) {
 
-						for ( k = 0 ; k < objheight ; k++ ) {
-							for ( j = 0 ; j < objwidth ; j++ ) {
+							for ( k = 0 ; k < 8 ; k++ ) {
+								
+								off_x = [2,0,4,2 , 2, 0 , 4, 2][k];
+								off_y = [0,2,2,4 , 2, 4,4 , 6][k];
+								var pat = object.state[ k ];
 
-								var srcx,srcy;
-								var pat = object.state[ k * objwidth + j  ];
-								if ( pat == 0 ) {
-									srcx = 2;
-									srcy = 11;
-								} else {
-									srcx = ( pat - 1 ) % 2;
-									srcy = ( ( ( pat - 1 ) / 2 ) >> 0 ) + 11;
-								}
+								srcx = ( pat - 1 ) % 2;
+								srcy = ( ( ( pat - 1 ) / 2 ) >> 0 ) + 11;
+
 
 								this.ctxt.drawImage( this.sprite_objecttiles, 
-											srcx * this.setting_minblocksize,
-											srcy * this.setting_minblocksize,
-											this.setting_minblocksize,
-											this.setting_minblocksize,
-								object.x + (this.setting_minblocksize * j) - this.camera.x , 
-								object.y + (this.setting_minblocksize * k)- this.camera.y, 
-									this.setting_minblocksize, 
-									this.setting_minblocksize );	
+												srcx * this.setting_minblocksize,
+												srcy * this.setting_minblocksize,
+												this.setting_minblocksize,
+												this.setting_minblocksize,
+									object.x + (this.setting_minblocksize * off_x) - this.camera.x , 
+									object.y + (this.setting_minblocksize * off_y) - this.camera.y, 
+										this.setting_minblocksize, 
+										this.setting_minblocksize );		
+							}
+							for ( k = 0 ; k < 10 ; k++ ) {
 
-									
+								off_x = [ 1, 2, 3,  0,1,3,4   ,1,2,3 ][k];
+								off_y = [ 1, 1, 1,  3,3,3,3   ,5,5,5 ][k];
+								srcx  = [ 7, 6, 8,  6,4,4,6   ,8,6,7 ][k];
+								srcy  = 15;
+
+								this.ctxt.drawImage( this.sprite_bgtiles, 
+												srcx * this.setting_minblocksize,
+												srcy * this.setting_minblocksize,
+												this.setting_minblocksize,
+												this.setting_minblocksize,
+									object.x + (this.setting_minblocksize * off_x) - this.camera.x , 
+									object.y + (this.setting_minblocksize * off_y) - this.camera.y, 
+										this.setting_minblocksize, 
+										this.setting_minblocksize );		
+							}
+
+						} else {
+							var objwidth 	= object.width 	/ this.setting_minblocksize;
+							var objheight 	= object.height / this.setting_minblocksize;
+							
+
+							for ( k = 0 ; k < objheight ; k++ ) {
+								for ( j = 0 ; j < objwidth ; j++ ) {
+
+									var srcx,srcy;
+									var pat = object.state[ k * objwidth + j  ];
+									if ( pat == 0 ) {
+										srcx = 2;
+										srcy = 11;
+									} else {
+										srcx = ( pat - 1 ) % 2;
+										srcy = ( ( ( pat - 1 ) / 2 ) >> 0 ) + 11;
+									}
+
+									this.ctxt.drawImage( this.sprite_objecttiles, 
+												srcx * this.setting_minblocksize,
+												srcy * this.setting_minblocksize,
+												this.setting_minblocksize,
+												this.setting_minblocksize,
+									object.x + (this.setting_minblocksize * j) - this.camera.x , 
+									object.y + (this.setting_minblocksize * k)- this.camera.y, 
+										this.setting_minblocksize, 
+										this.setting_minblocksize );	
+
+										
+								}
 							}
 						}
 
@@ -1923,7 +2067,8 @@ function Dogewarrior() {
 
 						var platform_tilewidth  = ( object.width / this.setting_minblocksize ) >> 0;
 						var platform_tileheight = ( object.height / this.setting_minblocksize ) >> 0; 
-
+						var state = parseInt( object.properties.state ); 
+									
 						for ( var j = 0 ; j < platform_tilewidth ; j++ ) { 
 							
 							for ( var k = 0 ; k < platform_tileheight ; k++ ) {	
@@ -1936,7 +2081,6 @@ function Dogewarrior() {
 
 								if ( object.type == "inandout" ) {
 
-									var state = parseInt( object.properties.state ); 
 									if ( state == 0 ) {
 										srcy = 13;
 									} else if ( state == 2 ) {
@@ -1964,6 +2108,10 @@ function Dogewarrior() {
 
 							}	
 						}
+
+
+						
+
 					
 					} else if ( object.name == "trapdoor" ) {
 

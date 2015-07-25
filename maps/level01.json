@@ -3939,6 +3939,19 @@
                  "width":40,
                  "x":8800,
                  "y":4440
+                }, 
+                {
+                 "height":40,
+                 "name":"hint",
+                 "properties":
+                    {
+                     "hint":"Watch out for hidden switches. Out of reach prizes are within grasp."
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":40,
+                 "x":1840,
+                 "y":3080
                 }],
          "opacity":1,
          "type":"objectgroup",
