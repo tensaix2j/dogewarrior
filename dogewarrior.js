@@ -7,7 +7,7 @@
 
 function Dogewarrior() {
 
-	this.version 				= 1.7;
+	this.version 				= 1.8;
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -15,7 +15,7 @@ function Dogewarrior() {
 
 	
 	this.ctxt;
-	this.timerinterval   		= 15;
+	this.timerinterval   		= 10;
 	this.player 				= {};
 	this.camera 				= {};
 
