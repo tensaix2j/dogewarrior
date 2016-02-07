@@ -7,7 +7,7 @@
 
 function Dogewarrior() {
 
-	this.version 				= 1.8;
+	this.version 				= 1.9;
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -1236,7 +1236,7 @@ function Dogewarrior() {
 
 
 
-		this.loadJSON("maps/level" + level + ".json",function( map ) {
+		this.loadJSON("maps/level" + level + ".json?",function( map ) {
 			dw.map = map;
 
 			dw.load_map_resources();
@@ -1436,7 +1436,13 @@ function Dogewarrior() {
 			this.sndOpendoor   = new Audio(this.map.properties["sndOpendoor"]);
 		}
 		if ( this.map.properties["sndClosedoor"] ) {
-			this.sndClosedoor  = new Audio(this.map.properties["sndOpendoor"]);
+			this.sndClosedoor  = new Audio(this.map.properties["sndClosedoor"]);
+		}
+		if ( this.map.properties["sndOpenTrapdoor"] ) {
+			this.sndOpenTrapdoor  = new Audio(this.map.properties["sndOpenTrapdoor"]);
+		}
+		if ( this.map.properties["sndCloseTrapdoor"] ) {
+			this.sndCloseTrapdoor  = new Audio(this.map.properties["sndCloseTrapdoor"]);
 		}
 		
 		if ( this.map.properties["mp3bgmusic"] ) {
@@ -1444,6 +1450,15 @@ function Dogewarrior() {
 			this.mp3bgmusic.loop 	= true;
 		}
 
+		// if there's bgimg
+		if ( this.map.properties["bgimg"] ) {
+			this.total_resource += 1;
+			this.bgimg 		= new Image();
+			this.bgimg.src  = this.map.properties["bgimg"];
+			this.bgimg.addEventListener('load', function() {
+				dw.on_load_completed();
+			},false);
+		}
 
 	}
 
@@ -1748,6 +1763,11 @@ function Dogewarrior() {
 		var tilex_count = this.canvas.width / this.setting_minblocksize >> 0 ;
 		var tiley_count = this.canvas.height / this.setting_minblocksize >> 0 ;
 
+
+		// Draw background image
+		if ( this.bgimg ) {
+			this.ctxt.drawImage( this.bgimg , 0 , 0 ); 
+		}
 
 		// Draw Background tiles
 		if ( this.map.layers ) {
@@ -2591,7 +2611,7 @@ function Dogewarrior() {
 				this.player_pickup_objects();
 				this.player_collide_with_trigger();
 				this.player_collide_with_trap();
-
+				
 
 			} else {
 				this.animate_player_death();
@@ -2722,11 +2742,10 @@ function Dogewarrior() {
 
 						if ( object.name == "deathtrap" && object.type == "spike" ) {
 
-							if (  this.player.falling > 0 && this.player.upwardspeed > 0.0 &&  parseInt( object.properties.state ) == 1  ) {
+							if (  this.player.prev_frame_falling > 0 && this.player.prev_frame_upwardspeed > 0.0 &&  parseInt( object.properties.state ) == 1  ) {
 								
 								this.player_get_hurt(99);
-								
-							}
+							} 
 						}
 
 				}
@@ -2924,6 +2943,11 @@ function Dogewarrior() {
 
 	//-----------------------------------
 	this.player_falling = function() {
+
+		// Prev frame falling state
+		this.player.prev_frame_falling = this.player.falling;
+		this.player.prev_frame_upwardspeed = this.player.upwardspeed;
+
 		// Falling
 		if ( this.player.falling > 0 ) {
 			
