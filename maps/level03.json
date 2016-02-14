@@ -1172,8 +1172,8 @@
                  "type":"",
                  "visible":true,
                  "width":40,
-                 "x":3640,
-                 "y":3760
+                 "x":3160,
+                 "y":5440
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1612,26 +1612,6 @@
                  "width":80,
                  "x":3600,
                  "y":5680
-                }, 
-                {
-                 "height":80,
-                 "name":"monster_grounded",
-                 "properties":
-                    {
-                     "direction":"2",
-                     "firepower":"1",
-                     "firetype":"2",
-                     "hp":"1",
-                     "max_x":"auto",
-                     "min_x":"auto",
-                     "spawncount":"2",
-                     "spawninterval":"120"
-                    },
-                 "type":"cat",
-                 "visible":true,
-                 "width":80,
-                 "x":5720,
-                 "y":2760
                 }, 
                 {
                  "height":80,
