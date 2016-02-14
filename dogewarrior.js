@@ -31,7 +31,8 @@ function Dogewarrior() {
 	this.setting_bullet_vy 				= -4;
 	this.setting_monster_bullet_vy 		= -16;
 	this.setting_monster_boss_bullet_vy = -8;
-
+	this.setting_monster_width  		= 80;
+	this.setting_monster_height 		= 80;
 
 	this.setting_minblocksize 			= 40;
 	this.setting_gravity 				= 1.1;
@@ -84,7 +85,10 @@ function Dogewarrior() {
 						bullet.vy = this.setting_minblocksize - 1;
 					}
 				}
-				bullet.y += bullet.vy;
+				
+				if ( bullet.fly_straight  == 0 ) { 
+					bullet.y += bullet.vy;
+				}
 				bullet.x += bullet.vx;
 				
 				if ( this.bullet_collide_with_wall( bullet ) ) {
@@ -275,6 +279,11 @@ function Dogewarrior() {
 
 				
 				object.tick += 1;
+				// anim
+				var anim_interval = this.setting_monster_anim_interval - object.speed;
+				if ( anim_interval < 1 ) {
+					anim_interval = 1;
+				}
 
 				if ( object.name == "monster_grounded") {
 
@@ -304,12 +313,6 @@ function Dogewarrior() {
 						object.tick2 += 1;
 					}
 
-					// anim
-					var anim_interval = this.setting_monster_anim_interval - object.speed;
-					if ( anim_interval < 1 ) {
-						anim_interval = 1;
-					}
-
 					if ( object.tick > anim_interval ) {
 						
 						object.tick = 0;
@@ -322,6 +325,53 @@ function Dogewarrior() {
 						}
 					}
 
+				} else if ( object.name == "monster_follower" ) {
+						
+					// Following monster has gravity + all the collision detection with walls like main player.
+					var excess  = this.object_collide_with_wall( object, 3, object.upwardspeed + 6 + 0.8 ); 
+					if ( excess == 0  ){ 
+						object.upwardspeed += this.setting_gravity;
+
+						// Terminal velocity
+						if ( object.upwardspeed > this.setting_minblocksize - 1.0 ) {
+							object.upwardspeed = this.setting_minblocksize - 1.0 ;
+
+						}
+
+						object.y += object.upwardspeed;
+					} else {
+						object.upwardspeed = 0;
+						
+					}
+
+
+					if ( object.x < this.player.x ) { 
+
+						excess = this.object_collide_with_wall( object, 2 , object.speed + 10 ) ;
+						if ( excess == 0 ) {
+							object.x += object.speed;
+						} else if ( object.upwardspeed == 0 ) {
+							object.upwardspeed = -20.0;
+						}
+					}
+					if ( object.x > this.player.x )	{ 
+
+						excess = this.object_collide_with_wall( object, 0 , -object.speed ) ;
+						if ( excess == 0 ) {
+							object.x -= object.speed;
+						} else if ( object.upwardspeed == 0 ) {
+							object.upwardspeed = - 20.0;
+						}
+					}
+				
+
+					if ( object.tick > anim_interval ) {
+						
+						object.tick = 0;
+						object.framey = 1;
+						object.framex = ( (object.framex + 1 ) % 8 ) + 8;	
+						
+					}
 
 				} else if ( object.name == "monster_flying" ) {
 
@@ -850,10 +900,23 @@ function Dogewarrior() {
 	//---------------------------------
 	this.debug = function() {
 
-		
+		if ( this.monsters.length > 0 ) {
 
-		
-	}
+			delta = 1;
+			main_object = this.monsters[0];
+			
+			pof_x = main_object.x + 0 * 10 + main_object.width/2  ;
+			pof_y = main_object.y + main_object.height + delta - 6 ;
+			pof_x = main_object.x + 50;
+			pof_y = main_object.y + main_object.height;	
+
+			this.ctxt.beginPath();
+			this.ctxt.moveTo( pof_x       - this.camera.x, pof_y - this.camera.y  );
+			this.ctxt.lineTo( pof_x + 150 - this.camera.x, pof_y - this.camera.y + 150 );
+ 			this.ctxt.strokeStyle = '#ff0000';
+ 			this.ctxt.stroke();
+ 		}
+ 	}	
 
 
 
@@ -1450,6 +1513,10 @@ function Dogewarrior() {
 			this.mp3bgmusic.loop 	= true;
 		}
 
+		if ( this.map.properties["sndMovingwall"] ) {
+			this.sndMovingwall =  new Audio(this.map.properties["sndMovingwall"]);
+		}
+
 		// if there's bgimg
 		if ( this.map.properties["bgimg"] ) {
 			this.total_resource += 1;
@@ -1506,8 +1573,16 @@ function Dogewarrior() {
 				bullet.x 	= monster.x + 50;
 			}
 			bullet.y  		= monster.y + 30 ;
-			bullet.vy 		= this.setting_monster_bullet_vy;
+			bullet.fly_straight = 0;
+			
+			if ( monster.firetype == 2 ) {
+				bullet.vy 	= 0;
+				bullet.fly_straight = 1;
+			} else { 
+				bullet.vy 	= this.setting_monster_bullet_vy;
+			}
 			bullet.vx  		= ( monster.direction - 1 ) * this.setting_bullet_vx ;
+			
 			bullet.owner  	= 1;
 			bullet.power 	= monster.firepower ;
 			bullet.active 	= true;
@@ -2435,7 +2510,7 @@ function Dogewarrior() {
       		}
       	//}
 
-		this.debug();
+		//this.debug();
 
 	}
 
@@ -2793,12 +2868,15 @@ function Dogewarrior() {
 	}
 
 
-
 	//-----------------------------
 	this.player_collide_with_wall = function( direction , delta) {
 		
-		
+		return this.object_collide_with_wall( this.player , direction , delta );
+	}
 
+	//-----------------------------
+	this.object_collide_with_wall = function( main_object, direction , delta) {
+		
 		for ( var j = 0 ; j < 3 ; j++ ) {
 
 			var pof_x = null;
@@ -2806,24 +2884,24 @@ function Dogewarrior() {
 
 			if ( direction == 3 ) {
 
-				pof_x = this.player.x + j * 10 + 50  ;
-				pof_y = this.player.y + this.player.height + delta - 6 ;
-			
- 			
+				pof_x = main_object.x + j * 10 + ( main_object.width / 2 >> 0 ) - 10 ;
+				pof_y = main_object.y + main_object.height + delta - 6 ;
+				
+
 			} else if ( direction == 1 ) {
 			
-				pof_x = this.player.x + j * 10 + 50  ;
-				pof_y = this.player.y + 24;
+				pof_x = main_object.x + j * 10 + ( main_object.width / 2 >> 0 ) - 10 ;
+				pof_y = main_object.y + 24;
 
 			} else if (direction == 0 ) {
 				
-				pof_x = this.player.x + 40 + delta ;
-				pof_y = this.player.y + j * 40 + 25 ;
+				pof_x = main_object.x +     ( main_object.width  / 3 >> 0 ) + delta ;
+				pof_y = main_object.y + j * ( main_object.height / 3 >> 0 ) + 25 ;
 			
 			} else if ( direction == 2 ) {
 
-				pof_x = this.player.x + 80 + delta ;
-				pof_y = this.player.y + j * 40 + 25 ;
+				pof_x = main_object.x +     ( main_object.width  * 2/ 3 >> 0 ) + delta ;
+				pof_y = main_object.y + j * ( main_object.height  / 3 >> 0 ) + 25 ;
 			}		
 
 
@@ -3118,6 +3196,7 @@ function Dogewarrior() {
 			bullet.y  		= firepoint_y ;
 			bullet.power 	= firepower;
 			bullet.owner 	= 0;
+			bullet.fly_straight = 0;
 			bullet.vy 		= this.setting_bullet_vy - 5 * i;
 			bullet.vx  		= this.player.direction * this.setting_bullet_vx * 2  - this.setting_bullet_vx ;
 			bullet.active 	= true;
@@ -3606,6 +3685,8 @@ function Dogewarrior() {
 							var monster = { 
 								x:object.x , 
 								y:object.y , 
+								width: this.setting_monster_width,
+								height: this.setting_monster_height,
 								name:object.name , 
 								direction:parseInt(object.properties.direction), 
 								hp:parseInt(object.properties.hp),
@@ -3621,6 +3702,7 @@ function Dogewarrior() {
 
 							if ( object.properties.firepower ) {
 								monster.firepower = parseInt( object.properties.firepower );
+								monster.firetype  = object.properties.firetype  ? parseInt( object.properties.firetype ) : 0;
 							} else {
 								monster.firepower = 0;
 							}
@@ -3631,6 +3713,12 @@ function Dogewarrior() {
 								monster.min_x  = parseInt(object.properties.min_x);
 								monster.max_x  = parseInt(object.properties.max_x);
 							
+							} else if ( monster.name == "monster_follower" ) {
+							
+								monster.framey = 1;
+								monster.framex = 8;
+								monster.upwardspeed = 0;
+
 							} else if ( monster.name == "monster_flying") {
 
 								monster.framey = 2;
