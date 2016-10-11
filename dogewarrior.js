@@ -7,7 +7,7 @@
 
 function Dogewarrior() {
 
-	this.version 				= 1.9;
+	this.version 				= "1.10";
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -59,6 +59,7 @@ function Dogewarrior() {
 	this.triggerlayer_id 			= 7;
 
 	this.keypads 					= [];
+	this.setting_char_per_row 		= 70;
 
 
 
@@ -1161,8 +1162,7 @@ function Dogewarrior() {
 
 
 
-
-
+	
 
 	//------------------------------------------------------------------
 	this.init = function( level ) {
@@ -1178,9 +1178,9 @@ function Dogewarrior() {
 
 
 		
-		
 		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
 		 	this.ismobile = 1;
+		 	this.setting_char_per_row 		= 50;
 		}
 		
 		this.canvas = document.getElementById("cv");
@@ -1255,7 +1255,7 @@ function Dogewarrior() {
 		},false);
 		
 		this.sprite_keypad = new Image();
-		this.sprite_keypad.src = "images/keypad.png";
+		this.sprite_keypad.src = "images/keypad.png?";
 		this.sprite_particle.addEventListener('load', function() {
 			dw.on_load_completed();
 		},false);
@@ -1324,25 +1324,27 @@ function Dogewarrior() {
 		}, false );	
 
 		
-		if ( this.ismobile == 1 ) {
 			
+		window.addEventListener('orientationchange', function(e) {
+			dw.on_orientationchange(e);
+		}, false );
 
-			window.addEventListener('orientationchange', function(e) {
-				dw.on_orientationchange(e);
-			}, false );
 
+		this.canvas.addEventListener('touchstart', function(e) {
+		    e.preventDefault();
+		    dw.on_touchstart( e );
+		}, false);
 
-			document.addEventListener('touchstart', function(e) {
-			    e.preventDefault();
-			    dw.on_touchstart( e );
-			}, false);
+		this.canvas.addEventListener('touchend', function(e) {
+		    e.preventDefault();
+		    dw.on_touchend( e );
+		}, false);
 
-			document.addEventListener('touchend', function(e) {
-			    e.preventDefault();
-			    dw.on_touchend( e );
-			}, false);
-				
-		}
+		this.canvas.addEventListener('touchmove', function(e) {
+				e.preventDefault();
+		}, false);
+			
+		
 
 	}
 
@@ -1357,33 +1359,18 @@ function Dogewarrior() {
 		this.keypads.length = 0;
 
 
-		keypad = {
-			framex:1,
-			framey:0,
-			x:this.canvas.width  - 2 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:38
-		}
-		this.keypads.push( keypad );
-
+		// Left
 		keypad = {
 			framex:0,
 			framey:0,
-			x:this.canvas.width  - 3 *( this.setting_minblocksize * 2 ) - 2,
+			x: 2,
 			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
 			keycode:37
 		}
 		this.keypads.push( keypad );
-
-		keypad = {
-			framex:3,
-			framey:0,
-			x:this.canvas.width  - 2 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:40
-		}
-		this.keypads.push( keypad );
 		
+
+		// Right
 		keypad = {
 			framex:2,
 			framey:0,
@@ -1393,43 +1380,72 @@ function Dogewarrior() {
 		}
 		this.keypads.push( keypad );
 
+
+		// Up
+		keypad = {
+			framex:1,
+			framey:0,
+			x: this.canvas.width /2  - this.setting_minblocksize  / 2,
+			y: 0 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:38
+		}
+		this.keypads.push( keypad );
+
+		// Down
+		keypad = {
+			framex:3,
+			framey:0,
+			x: this.canvas.width /2 - this.setting_minblocksize  /2,
+			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			keycode:40
+		}
+		this.keypads.push( keypad );
+		
+
+		// Up left
 		keypad = {
 			framex:4,
 			framey:0,
-			x:this.canvas.width  - 3 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
+			x: 2,
+			y: 0 *( this.setting_minblocksize * 2 ) - 2,
 			keycode:3738
 		}
 		this.keypads.push( keypad );
 
+		// Up right
 		keypad = {
 			framex:5,
 			framey:0,
 			x:this.canvas.width  - 1 *( this.setting_minblocksize * 2 ) - 2,
-			y:this.canvas.height - 2 *( this.setting_minblocksize * 2 ) - 2,
+			y: 0 *( this.setting_minblocksize * 2 ) - 2,
 			keycode:3839
 		}
-
 		this.keypads.push( keypad );
 
+
+		
+		// Zleft
 		keypad = {
 			framex:0,
 			framey:1,
 			x: 2,
-			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
+			y: this.canvas.height / 2 - this.setting_minblocksize / 2,
 			keycode:90
 		}
 		this.keypads.push( keypad );
 
+		// Zright
 		keypad = {
-			framex:1,
+			framex:0,
 			framey:1,
-			x: 1 *( this.setting_minblocksize * 2 ) + 2,
-			y:this.canvas.height - 1 *( this.setting_minblocksize * 2 ) - 2,
-			keycode:88
+			x:this.canvas.width  - 1 *( this.setting_minblocksize * 2 ) - 2,
+			y: this.canvas.height / 2 - this.setting_minblocksize / 2,
+			keycode:90
 		}
 		this.keypads.push( keypad );
-			
+		
+
+
 
 		
 
@@ -2455,8 +2471,22 @@ function Dogewarrior() {
 				alpha = ( this.displaytick / 100 ).toFixed(2);
 			}
 			this.ctxt.fillStyle =  "rgba( 255 , 255 ,255, " + alpha +")";
-      		this.ctxt.fillText( this.displaymsg , this.canvas.width /2 - this.displaymsg.length * 10 / 2, this.canvas.height - 13 );
 			
+
+			var char_per_row = this.setting_char_per_row;
+			if ( this.displaymsg.length < char_per_row ) {
+      			this.ctxt.fillText( this.displaymsg , this.canvas.width /2 - this.displaymsg.length * 7 / 2, this.canvas.height - 13  );
+			} else {
+				var rowcount = (( this.displaymsg.length / char_per_row ) >> 0 ) + 1;
+					
+				for ( i = 0 ; i < rowcount ; i++ ) {
+					this.ctxt.fillText( 
+						this.displaymsg.substring(i * char_per_row  , (i + 1) * char_per_row ), 
+						this.canvas.width /2 - char_per_row * 7 / 2, 
+						this.canvas.height - 13 * (rowcount-i)   
+					);
+				}
+			}
 		}
 
 
@@ -2585,49 +2615,111 @@ function Dogewarrior() {
 	
 
 	//-----------
-	this.on_touchstart = function( touch ) {
+	this.on_touchstart = function( evt ) {
 
-		for ( var i = 0 ; i < this.keypads.length ; i++ ) {
-			var keypad = this.keypads[i];
-			if ( touch.pageX >= keypad.x && touch.pageX <= keypad.x + 2 * this.setting_minblocksize && 
-				 touch.pageY >= keypad.y && touch.pageY <= keypad.y + 2 * this.setting_minblocksize) {
+		
+		for (var i = 0; i < evt.changedTouches.length ; i++) {
 
-				var keyCode = keypad.keycode;
-				if ( keyCode >= 37 && keyCode <= 40 ) {
-					this.player.control_direction[ keyCode - 37 ] = 1 ;
+    		var touch = evt.changedTouches[i];
+    		
+			var touch_grid_x = ( touch.pageX /  this.canvas.width  * 5 ) >> 0;
+			var touch_grid_y = ( touch.pageY /  this.canvas.height * 5 ) >> 0;
+
+			var touch_region = touch_grid_y * 5 + touch_grid_x;
+
+			if ( [16,20,21].indexOf(touch_region) > -1  ) {
+
+				this.player.control_direction[ 0 ] = 1 ;
+				this.player.control_direction[ 2 ] = 0 ;
+			
+			} else if ( [18,23,24].indexOf(touch_region) > -1 ) {
+
+				this.player.control_direction[ 2 ] = 1;
+				this.player.control_direction[ 0 ] = 0;
+
 				
-				} else if ( keyCode == 3738 ) {
+			} else if ( [0,1,5].indexOf(touch_region) > -1 ) {
+
+				this.player.control_direction[ 0 ] = 1 ;
+				this.player.control_direction[ 1 ] = 1 ;
+				this.player.control_direction[ 2 ] = 0;
+			
+			} else if ( [2,7].indexOf(touch_region) > -1 ) {
+
+				this.player.control_direction[ 1 ] = 1 ;
+				this.player.control_direction[ 3 ] = 0 ;
 				
-					this.player.control_direction[ 0 ] = 1;
-					this.player.control_direction[ 1 ] = 1;
-
-				} else if ( keyCode == 3839 ) {
-
-					this.player.control_direction[ 2 ] = 1;
-					this.player.control_direction[ 1 ] = 1;
-
-				} else if ( keyCode == 90 ) {
-
-					if ( this.player.firing == 0  && this.player.in_pain == 0) {
-						
-						this.player.firing = 1;
-					}
 				
-				} else if ( keyCode == 88 ) {
-					this.doaction();
+			} else if ( [3,4,9].indexOf(touch_region) > -1 ) {
+
+				this.player.control_direction[ 2 ] = 1 ;
+				this.player.control_direction[ 1 ] = 1 ;
+				this.player.control_direction[ 0 ] = 0 ;
+		
+			} else if ( [10,11 ].indexOf(touch_region) > -1 ) {
+				
+				if ( this.player.firing == 0  && this.player.in_pain == 0) {
+					this.player.firing = 1;
 				}
+			} else if ( [13,14 ].indexOf(touch_region) > -1 ) {
+				
+				if ( this.player.firing == 0  && this.player.in_pain == 0) {
+					this.player.firing = 1;
+				}						
+			} else if ( [22,17].indexOf( touch_region ) > -1 ) {
 
-			} 
+				this.player.control_direction[ 1 ] = 0 ;
+				this.player.control_direction[ 3 ] = 1 ;
+			
+			} else if ( [7,11,12,13].indexOf( touch_region ) > -1 ) {
+
+				this.doaction();
+			}
 		}
+
 	}
 
 
 	//-------
-	this.on_touchend = function(touch ) {
+	this.on_touchend = function( evt  ) {
 
-		for ( i = 0 ; i < 4; i++ ) {
-			this.player.control_direction[ i ] = 0 ;
-		}	
+		for (var i = 0; i < evt.changedTouches.length ; i++) {
+
+    		var touch = evt.changedTouches[i];
+			var touch_grid_x = ( touch.pageX /  this.canvas.width  * 5 ) >> 0;
+			var touch_grid_y = ( touch.pageY /  this.canvas.height * 5 ) >> 0;
+
+			var touch_region = touch_grid_y * 5 + touch_grid_x;
+
+			
+			if ( [15,16,20,21].indexOf(touch_region) > -1  ) {
+
+				this.player.control_direction[ 0 ] = 0 ;
+				
+			} else if ( [18,19,23,24].indexOf(touch_region) > -1 ) {
+				this.player.control_direction[ 2 ] = 0;
+			
+			} else if ( [2,7].indexOf(touch_region) > -1 ) {
+
+				this.player.control_direction[ 1 ] = 0 ;
+				
+			
+			} else if ( [0,1,5,6].indexOf(touch_region) > -1 ) {
+
+				this.player.control_direction[ 0 ] = 0 ;
+				this.player.control_direction[ 1 ] = 0 ;
+				
+			} else if ( [3,4,8,9].indexOf(touch_region) > -1 ) {
+
+				this.player.control_direction[ 2 ] = 0 ;
+				this.player.control_direction[ 1 ] = 0 ;
+
+			} else if ( [22,17].indexOf( touch_region ) > -1 ) {
+
+				this.player.control_direction[ 3 ] = 0 ;
+			
+			}
+		}
 	}	
 
 
@@ -2643,14 +2735,15 @@ function Dogewarrior() {
 			console.log("Loading Completed");
 			this.reinit_game();
 			
-			//window.requestAnimationFrame( function() {
-			//	dw.on_timer();
-			//});
+			window.requestAnimationFrame( function() {
+				dw.on_timer();
+			});
 
+			/*
 			setTimeout( function() {
 				dw.on_timer();
 			}, this.timerinterval );
-			
+			*/
 			if ( typeof this.mp3bgmusic != 'undefined' ) {
 				this.mp3bgmusic.play();	
 			}
@@ -2732,16 +2825,18 @@ function Dogewarrior() {
 
 			this.on_draw();
 
-		
+			
 
 		
-		//window.requestAnimationFrame( function() {
-		//	dw.on_timer();
-		//});
+		window.requestAnimationFrame( function() {
+			dw.on_timer();
+		});
+
+		/*
 		setTimeout( function() {
 			dw.on_timer();
 		}, this.timerinterval );
-
+		*/
 			
 			
 
@@ -3638,9 +3733,7 @@ function Dogewarrior() {
 
     	if ( this.ismobile == 1 ) {
     	
-    		//this.initKeypad();
-    	
-    		
+    		this.initKeypad();
     	}
     }
 	
@@ -3822,7 +3915,9 @@ function Dogewarrior() {
 function main(level) {
 
 	dw = new Dogewarrior();
-	document.getElementById('wowversion').innerHTML = dw.version;
+	if ( document.getElementById('wowversion') ) { 
+		document.getElementById('wowversion').innerHTML = dw.version; 
+	}
 	dw.init(level);
 
 	 
