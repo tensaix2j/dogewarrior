@@ -3737,7 +3737,7 @@
                  "name":"hint",
                  "properties":
                     {
-                     "hint":"Press X to pull\/push the switches"
+                     "hint":"Press X to pull\/push the switches. For mobile, just touch it when near."
                     },
                  "type":"",
                  "visible":true,
@@ -3952,6 +3952,19 @@
                  "width":40,
                  "x":1840,
                  "y":3080
+                }, 
+                {
+                 "height":40,
+                 "name":"hint",
+                 "properties":
+                    {
+                     "hint":"For mobile users, add to home screen for fullscreen experience"
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":40,
+                 "x":682,
+                 "y":3717
                 }],
          "opacity":1,
          "type":"objectgroup",
