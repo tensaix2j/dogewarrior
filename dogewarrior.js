@@ -7,7 +7,7 @@
 
 function Dogewarrior() {
 
-	this.version 				= "1.10";
+	this.version 				= "1.11";
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -839,7 +839,8 @@ function Dogewarrior() {
 	this.bullet_collide_with_wall = function( bullet ) {
 
 		if ( this.map.layers ) {
-					
+			
+			// Static Fg		
 			var pof_tile_y = bullet.y / this.setting_minblocksize >> 0;
 	    	var pof_tile_x = bullet.x / this.setting_minblocksize >> 0;
 
@@ -857,6 +858,45 @@ function Dogewarrior() {
 
 					}
 				}
+			}
+
+			// Foreground objects
+			var objects_arr = this.foregroundobjects;
+
+			for ( var i =  objects_arr.length - 1 ; i > 0 ; i-- ) {
+				
+				object = objects_arr[i];
+
+				// Only draw visible object. The camera is always half screen left and top of player so
+				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
+
+					if   ( 	( object.name == "movingplatform" && object.type != "inandout" )  || 
+							( object.name == "movingplatform" && object.type == "inandout" && parseInt( object.properties.state ) > 0 )  || 
+							( object.name == "trapdoor" && parseInt( object.properties.state ) == 1 ) || 
+						    ( object.name == "zdoor"    && parseInt( object.properties.state ) == 1 ) ||
+						    ( object.name == "fragile" && parseInt(object.properties.state) < 4 )
+						 ) {
+
+						
+						if ( bullet.x >= object.x  && bullet.x <= object.x + object.width  && 
+							 bullet.y >= object.y  && bullet.y <= object.y + this.setting_minblocksize  ) {
+
+							if ( object.name == "fragile"  ) {
+								object.properties.state = parseInt( object.properties.state ) + 1;
+								this.sndMine.play();
+
+								if ( object.properties.state >= 4) {
+									objects_arr.splice(i,1);
+								}
+							}
+							return 1;
+
+						}
+					}
+
+
+				}	
 			}
 		}
 		return 0;
@@ -1293,7 +1333,7 @@ function Dogewarrior() {
 
 		this.sndLifeup 		= new Audio("sounds/lifeup.wav");
 		this.sndHeal 		= new Audio("sounds/heal.wav");
-
+		this.sndMine 		= new Audio("sounds/mine.wav");
 
 
 
@@ -2253,6 +2293,37 @@ function Dogewarrior() {
 								2 * this.setting_minblocksize, 
 								3 * this.setting_minblocksize );	
 
+					
+					} else if ( object.name == "fragile" ) {
+
+						var fragile_state = parseInt( object.properties.state );
+						var fragile_tilewidth  = ( object.width  / this.setting_minblocksize ) >> 0;
+						
+						for ( var k = 0 ; k < fragile_tilewidth ; k++ ) {
+
+							var srcx = 3;
+							var srcy = 14 + fragile_state;		
+
+							if ( k == 0 && fragile_tilewidth > 1 ) { 
+								srcx = 2;
+							}
+							if ( k == fragile_tilewidth - 1 && fragile_tilewidth > 1 ) { 
+								srcx = 4;
+							}
+							this.ctxt.drawImage( this.sprite_objecttiles, 
+									srcx  * this.setting_minblocksize ,
+									srcy  * this.setting_minblocksize ,
+									1 * this.setting_minblocksize,
+									1 * this.setting_minblocksize,
+							object.x + k * this.setting_minblocksize - this.camera.x , 
+							object.y  - this.camera.y, 
+							1 * this.setting_minblocksize, 
+							1 * this.setting_minblocksize );	
+		
+						}
+						
+							
+						
 					}
 
 
@@ -3052,7 +3123,8 @@ function Dogewarrior() {
 						if   ( 	( object.name == "movingplatform" && object.type != "inandout" )  || 
 								( object.name == "movingplatform" && object.type == "inandout" && parseInt( object.properties.state ) > 0 )  || 
 								( object.name == "trapdoor" && parseInt( object.properties.state ) == 1 ) || 
-							    ( object.name == "zdoor"    && parseInt( object.properties.state ) == 1 ) 
+							    ( object.name == "zdoor"    && parseInt( object.properties.state ) == 1 ) ||
+							    ( object.name == "fragile" && parseInt(object.properties.state) < 4 )
 							 ) {
 
 							
