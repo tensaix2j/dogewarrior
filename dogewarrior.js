@@ -7,7 +7,7 @@
 
 function Dogewarrior() {
 
-	this.version 				= "1.11";
+	this.version 				= "1.12";
 
 	//------------------------------------
 	this.resource_loaded 		= 0;
@@ -871,14 +871,8 @@ function Dogewarrior() {
 				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
 					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
-					if   ( 	( object.name == "movingplatform" && object.type != "inandout" )  || 
-							( object.name == "movingplatform" && object.type == "inandout" && parseInt( object.properties.state ) > 0 )  || 
-							( object.name == "trapdoor" && parseInt( object.properties.state ) == 1 ) || 
-						    ( object.name == "zdoor"    && parseInt( object.properties.state ) == 1 ) ||
-						    ( object.name == "fragile" && parseInt(object.properties.state) < 4 )
-						 ) {
+					if ( this.object_is_collidable(object) ) {
 
-						
 						if ( bullet.x >= object.x  && bullet.x <= object.x + object.width  && 
 							 bullet.y >= object.y  && bullet.y <= object.y + this.setting_minblocksize  ) {
 
@@ -900,6 +894,19 @@ function Dogewarrior() {
 			}
 		}
 		return 0;
+	}
+
+	//----
+	this.object_is_collidable = function( object ) {
+		if   ( 	( object.name == "movingplatform" && object.type != "inandout" )  || 
+							( object.name == "movingplatform" && object.type == "inandout" && parseInt( object.properties.state ) > 0 )  || 
+							( object.name == "trapdoor" && parseInt( object.properties.state ) == 1 ) || 
+						    ( object.name == "zdoor"    && parseInt( object.properties.state ) == 1 ) ||
+						    ( object.name == "fragile" && parseInt(object.properties.state) < 4 )
+						 ) {
+			return true;	
+		}
+		return false;
 	}
 
 
@@ -1953,8 +1960,10 @@ function Dogewarrior() {
 				object =  this.backgroundobjects[i];
 
 				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
-					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
+				if ( ( object.x >= this.camera.x - this.canvas.width/2  || object.x + object.width > this.camera.x  ) && 
+					 object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && 
+					 object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 					if ( object.name == "switch" ) {
 
@@ -2210,8 +2219,10 @@ function Dogewarrior() {
 				object = this.foregroundobjects[i];
 
 				// Only draw visible object. The camera is always half screen left and top of player so
-				if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
-					 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
+				if ( (object.x >= this.camera.x - this.canvas.width/2  || object.x + object.width > this.camera.x ) && 
+					 object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
+					 object.y >= this.camera.y - this.canvas.height/2 && 
+					 object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
 				
 					if ( object.name == "movingplatform") {
@@ -3120,14 +3131,8 @@ function Dogewarrior() {
 					if ( object.x >= this.camera.x - this.canvas.width/2  && object.x <= this.camera.x + this.canvas.width  + this.canvas.width/2   && 
 						 object.y >= this.camera.y - this.canvas.height/2 && object.y <= this.camera.y + this.canvas.height + this.canvas.height/2 ) {
 
-						if   ( 	( object.name == "movingplatform" && object.type != "inandout" )  || 
-								( object.name == "movingplatform" && object.type == "inandout" && parseInt( object.properties.state ) > 0 )  || 
-								( object.name == "trapdoor" && parseInt( object.properties.state ) == 1 ) || 
-							    ( object.name == "zdoor"    && parseInt( object.properties.state ) == 1 ) ||
-							    ( object.name == "fragile" && parseInt(object.properties.state) < 4 )
-							 ) {
+						if  (  this.object_is_collidable(object) ) {
 
-							
 							if ( pof_x >= object.x  && pof_x <= object.x + object.width  && 
 								 pof_y >= object.y  && pof_y <= object.y + this.setting_minblocksize  ) {
 
