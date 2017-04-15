@@ -55,3 +55,10 @@ body {
 	margin-top:20px;
 }
 
+#dogewallet { 
+	user-select: text;
+    -moz-user-select: text;
+    -webkit-user-select: text;
+  	ms-user-select: text;
+}
+
