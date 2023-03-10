@@ -62,10 +62,11 @@ function Dogewarrior() {
 	this.setting_char_per_row 		= 70;
 
 
-
-	
-
-
+    this.fps = 60;
+    this.fpsInterval = 1000 / this.fps;
+    this.now = null; 
+    this.then = null;
+    
 
 
 
@@ -2641,6 +2642,10 @@ function Dogewarrior() {
 				
 				this.player.firing = 1;
 			}
+
+        } else if ( keyCode == 32 ) {
+            this.player.control_direction[1] = 1;
+
 		
 		} else if ( keyCode == 77 ) {
 
@@ -2669,7 +2674,9 @@ function Dogewarrior() {
 
 		if ( keyCode >= 37 && keyCode <= 40 ) {
 			this.player.control_direction[ keyCode - 37 ] = 0 ;
-		
+
+        } else if ( keyCode == 32 ) {
+            this.player.control_direction[1] = 0;
 		} else if ( keyCode == 80 ) {
 
 			if ( this.player.life < 0 ) {
@@ -2801,12 +2808,14 @@ function Dogewarrior() {
 		var dw = this;
 		this.resource_loaded += 1;
 		
+
 		if ( this.resource_loaded == this.total_resource ) {
 			
 			console.log("Loading Completed");
 			this.reinit_game();
-			
-			window.requestAnimationFrame( function() {
+            
+            this.then = Date.now();
+            window.requestAnimationFrame( function() {
 				dw.on_timer();
 			});
 
@@ -2825,14 +2834,18 @@ function Dogewarrior() {
 		}
 	}
 
+
 	//----------
 	this.on_timer = function() {
 
-		var dw = this;
-		
-		
+        var dw = this;
+        this.now = Date.now();
+        let elapsed = this.now - this.then;
+        
+        
+        if ( elapsed > this.fpsInterval ) {
 
-			if ( this.player.death == 0 ) {
+            if ( this.player.death == 0 ) {
 			
 				this.player_falling();
 				this.player_crouch();
@@ -2898,17 +2911,22 @@ function Dogewarrior() {
 
 			
 
-		
-		window.requestAnimationFrame( function() {
-			dw.on_timer();
-		});
+            
+            /*
+            setTimeout( function() {
+                dw.on_timer();
+            }, this.timerinterval );
+            */
+        }  else {
+            console.log("not yet");
+            
+        }
+            
+        this.then = this.now - ( elapsed % this.fpsInterval );
+        window.requestAnimationFrame( function() {
+            dw.on_timer();
+        });
 
-		/*
-		setTimeout( function() {
-			dw.on_timer();
-		}, this.timerinterval );
-		*/
-			
 			
 
 		
