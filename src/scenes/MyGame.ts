@@ -1644,6 +1644,7 @@ export class MyGame extends Scene {
 
             player_bound.T += delta;
             player_bound.B += delta;
+            
 
         } else if ( direction == 2 ) {
             
@@ -1652,8 +1653,10 @@ export class MyGame extends Scene {
 
         } else if ( direction == 3 ) {
             
+            player_bound.B += 1;
             player_bound.T += delta;
             player_bound.B += delta;
+            
 
         }
         
@@ -1865,7 +1868,7 @@ export class MyGame extends Scene {
         let L = player.position.x - player.w * 0.25;
         let R = player.position.x + player.w * 0.25;
         let T = player.position.y - player.h * 1.00;
-        let B = player.position.y - player.h * 0.005;
+        let B = player.position.y - player.h * 0.0125;
         return { L:L, R:R, T:T, B:B };
 
     }
