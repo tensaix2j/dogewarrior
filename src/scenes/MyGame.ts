@@ -1468,7 +1468,10 @@ export class MyGame extends Scene {
             player.head.y = -52
         
         
-        } else {
+        } 
+        
+        
+        if ( player.state != "jump" )  {
 
             // Check for drop
             player.terminalvelocity_length = 0;
